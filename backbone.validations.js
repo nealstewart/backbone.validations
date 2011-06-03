@@ -33,6 +33,7 @@ var validators = {
 function newValidate(params) {
   var hasOverridenError = params.hasOverridenError,
       attributes = params.attributes,
+      options = params.options,
       errorHasOccured = false,
       errors = {},
       errorsForAttribute,
@@ -44,7 +45,7 @@ function newValidate(params) {
     valueToSet = attributes[attrName];
     validateAttribute = this._attributeValidators[attrName];
     if (validateAttribute)  {
-      errorsForAttribute = validateAttribute.call(this, valueToSet, hasOverridenError);
+      errorsForAttribute = validateAttribute.call(this, valueToSet, hasOverridenError, options);
     }
     if (errorsForAttribute) {
       errorHasOccured = true;
@@ -108,7 +109,7 @@ function createAttributeValidator(model, attributeName, attributeDescription) {
     validatorsForAttribute.push(createValidator(model, attributeName, type, desc));
   }
 
-  return function(valueToSet, hasOverridenError) {
+  return function(valueToSet, hasOverridenError, options) {
     var validator,
         result,
         errors = [];
@@ -121,7 +122,7 @@ function createAttributeValidator(model, attributeName, attributeDescription) {
     
     if (errors.length) {
       if (!hasOverridenError) {
-          this.trigger('error:'+attributeName, this, errors );
+          this.trigger('error:'+attributeName, this, errors, options);
       }
       return errors;
     } else {
@@ -146,6 +147,7 @@ var oldPerformValidation = Backbone.Model.prototype._performValidation;
 function newPerformValidation(attrs, options) {
   var newAttrs = {
     attributes : attrs,
+    options : options,
     hasOverridenError : !!options.error
   };
   
