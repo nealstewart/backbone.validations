@@ -33,9 +33,10 @@ Plus there are named errors!
     [ "presence" ] << a list of errors is passed.
 
 TODO:
-- Put the validation pipeline in the Model's prototype, rather than on every model. This will be much nicer. > . <
-- Write validations
-- Add the ability to easily add custom validations
+
+* Put the validation pipeline in the Model's prototype, rather than on every model. This will be much nicer. > . <
+* Write validations
+* Add the ability to easily add custom validations
 
 Something like this would be cool:
   Backbone.Validations.addValidatorType("validationName", function() { ... } );
