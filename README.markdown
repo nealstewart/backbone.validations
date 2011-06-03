@@ -38,4 +38,5 @@ TODO:
 - Add the ability to easily add custom validations
 
 Something like this would be cool:
-  Backbone.Validations.addValidatorType("validationName", function() { ... } );
+
+    Backbone.Validations.addValidatorType("validationName", function() { ... } );
