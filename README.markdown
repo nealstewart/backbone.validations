@@ -57,6 +57,16 @@ model.validate. It receives the value you're setting. Have it return a non falsy
 TODO:
 
 * Write validations
+* Add custom validation methods
+
+Something like this:
+
+    var Model = Backbone.Model.extend({
+      validate : {
+        customValidation : "methodName"
+      }
+    });
+
 * Add the ability to easily add custom validations
 
 Something like this would be cool:
