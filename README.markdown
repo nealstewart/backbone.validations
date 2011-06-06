@@ -56,7 +56,6 @@ model.validate. It receives the value you're setting. Have it return a non falsy
 
 TODO:
 
-* Put the validation pipeline in the Model's prototype, rather than on every model. This will be much nicer. > . <
 * Write validations
 * Add the ability to easily add custom validations
 
