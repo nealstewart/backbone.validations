@@ -32,6 +32,28 @@ Plus there are named errors!
 
     [ "presence" ] << a list of errors is passed.
 
+You can also use a custom attribute validator:
+
+    var ExampleModel = Backbone.Model.extend({
+      validate : {
+        name : {
+          "presence" : true,
+          "custom" : "customAttributeMethod"
+        }
+      },
+
+      nameOfFunction : function(attributeName, attributeValue) {
+        if ("There's An Error") {
+          return "error_name";
+        } else {
+          return false; // or another falsy value.
+        }
+      }
+    });
+
+The custom validation function works in a similar manner to the normal
+model.validate. It receives the value you're setting. Have it return a non falsy value if you'd like it to throw an error.
+
 TODO:
 
 * Put the validation pipeline in the Model's prototype, rather than on every model. This will be much nicer. > . <
