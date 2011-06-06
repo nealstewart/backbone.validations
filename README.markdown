@@ -38,11 +38,11 @@ You can also use a custom attribute validator:
       validate : {
         name : {
           "presence" : true,
-          "custom" : "customAttributeMethod"
+          "custom" : "customAttributeValidation"
         }
       },
 
-      nameOfFunction : function(attributeName, attributeValue) {
+      customAttributeValidation : function(attributeName, attributeValue) {
         if ("There's An Error") {
           return "error_name";
         } else {
