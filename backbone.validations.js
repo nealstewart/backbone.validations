@@ -158,24 +158,45 @@ function newPerformValidation(attrs, options) {
 
 Backbone.Validations = {};
 
+
 // Constructor for our new Validations Model
 var oldModel = Backbone.Model;
-Backbone.Validations.Model = function() {
-  // if they pass an object, construct the new validations
-  if (typeof this.validate === "object" && this.validate !== null) {
-    if (!this.constructor.prototype._attributeValidators) {
-      this.constructor.prototype._attributeValidators = createValidators(this, this.validate);
-      this.constructor.prototype.validate = newValidate;
-      this.constructor.prototype._performValidation = newPerformValidation;
-    }
+
+
+// the following inheritance method is ripped straight from Backbone.
+// it would be nice if backbone made this public
+// so that i could avoid this repetition.
+var ctor = function(){};
+var inherits = function(parent, protoProps, staticProps) {
+  var child;
+  if (protoProps && protoProps.hasOwnProperty('constructor')) {
+    child = protoProps.constructor;
+  } else {
+    child = function(){ return parent.apply(this, arguments); };
   }
-  
-  oldModel.apply(this, arguments);
+  ctor.prototype = parent.prototype;
+  child.prototype = new ctor();
+  if (protoProps) _.extend(child.prototype, protoProps);
+  if (staticProps) _.extend(child, staticProps);
+  child.prototype.constructor = child;
+  child.__super__ = parent.prototype;
+  return child;
 };
 
-// Extend Backbone.Validations.Model with Backbone.Model
-Backbone.Validations.Model.prototype = Backbone.Model.prototype;
-_.extend(Backbone.Validations.Model, Backbone.Model);
+Backbone.Validations.Model = inherits(Backbone.Model, {
+  constructor : function() {
+    // if they pass an object, construct the new validations
+    if (typeof this.validate === "object" && this.validate !== null) {
+      if (!this.constructor.prototype._attributeValidators) {
+        this.constructor.prototype._attributeValidators = createValidators(this, this.validate);
+        this.constructor.prototype.validate = newValidate;
+        this.constructor.prototype._performValidation = newPerformValidation;
+      }
+    }
+    
+    oldModel.apply(this, arguments);
+  }
+}, Backbone.Model);
 
 // Override Backbone.Model with our new Model
 Backbone.Model = Backbone.Validations.Model;
