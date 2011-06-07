@@ -4,11 +4,13 @@
 // Premade Validators
 var validators = {
   "presence" : function(attributeName, valueToSet) {
-    var isNotBeingSet = _.isNull(valueToSet) || _.isUndefined(valueToSet);
     var currentValue = this.get(attributeName);
-    var isNotAlreadySet = _.isNull(currentValue) || _.isUndefined(currentValue);
+    var isNotAlreadySet = _.isUndefined(currentValue);
 
-    if (isNotBeingSet && isNotAlreadySet) {
+    var isNotBeingSet = _.isUndefined(valueToSet);
+
+    if (_.isNull(valueToSet) || valueToSet === "" ||
+         (isNotBeingSet && isNotAlreadySet)) {
       return "presence";
     } else {
       return false;
