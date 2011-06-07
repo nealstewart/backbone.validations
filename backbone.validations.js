@@ -15,6 +15,26 @@ var validators = {
     } else {
       return false;
     }
+  },
+
+  "length" : function(minLength, maxLength, attributeName, valueToSet) {
+    var undef;
+    if (typeof valueToSet === "string") {
+      var underMinLength;
+      if (minLength > 0) {
+        underMinLength = valueToSet.length < minLength;
+      }
+      var overMaxLength;
+      if (maxLength > 0) {
+        overMaxLength = valueToSet.length > maxLength;
+      }
+
+      var errors = [];
+      if (underMinLength) errors.push( "under_min" );
+      if (overMaxLength)  errors.push( "over_max" );
+
+      return errors.length ? errors : false;
+    }
   }
 };
 
@@ -60,6 +80,7 @@ function newValidate(params) {
 
 /* createValidator takes in:
     - the model
+    - the name of the attribute
     - the type of validation
     - the description of the validation
 
@@ -71,8 +92,9 @@ function newValidate(params) {
   */
 function createValidator(model, attributeName, type, description) {
   var validator,
+      validatorMethod,
       customValidator;
-
+  
   switch (type) {
     case "presence" : {
       if (!description) {
@@ -82,8 +104,18 @@ function createValidator(model, attributeName, type, description) {
       validator = validators.presence;
       break;
     }
+    case "length" : {
+      validator = validators.length;
+      var minLength = description.min;
+      var maxLength = description.max; 
+      var minLengthNotSet = _.isNull(minLength) || _.isUndefined(minLength);
+      var maxLengthNotSet = _.isNull(maxLength) || _.isUndefined(maxLength);
+      if (minLengthNotSet && maxLengthNotSet) throw "need to set either a max or min length";
+      validator = _.bind(validator, this, minLength, maxLength);
+      break;
+    }
     case "custom" : {
-      if (!_.isString(description)) { throw "Custome error callback names must be a string"; }
+      if (!_.isString(description)) { throw "Custom error callback names must be a string"; }
       validatorMethod = model[description];
 
       if (!_.isFunction(validatorMethod)) { throw "Custom validator '"+description+"' is not a function on the model"; }
@@ -119,7 +151,13 @@ function createAttributeValidator(model, attributeName, attributeDescription) {
     for (var i = 0, length = validatorsForAttribute.length; i < length; i++) {
       validator = validatorsForAttribute[i];
       result = validator.call(this, valueToSet);
-      if (result) errors.push(result); 
+      if (result) {
+        if (_.isArray(result)) {
+          errors = errors.concat(result);
+        } else {
+          errors.push(result);
+        }
+      }  
     }
     
     if (errors.length) {

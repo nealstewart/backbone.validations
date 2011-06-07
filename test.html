@@ -202,6 +202,60 @@ test("it's included in the error", function() {
   ok(errorResponseWasIncluded);
 });
 
+module("length validator");
+test("given a minimum length, it will error if given a string that is a smaller", function() {
+  var lengthToBeLessThan = 3;
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        length : {
+          min: 3
+        }
+      }
+    }
+  });
+
+  var t = new TestModel;
+  equals(t.set({name : "neal"}), t);
+  equals(t.set({name : "al"}), false);
+});
+
+test("given a maximum length, it will error if given a string that is a larger", function() {
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        length : {
+          max: 4
+        }
+      }
+    }
+  });
+
+  var t = new TestModel;
+  equals(t.set({name : "neals"}), false);
+  equals(t.set({name : "al"}), t);
+});
+
+test("given a maximum and minimum length, it will error if given a string that is outside those bounds", function() {
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        length : {
+          min: 4,
+          max: 6
+        }
+      }
+    }
+  });
+
+  var t = new TestModel;
+  equals(t.set({name : "bollocksareawesome"}), false);
+  equals(t.set({name : "al"}), false);
+  equals(t.set({name : "neal"}), t);
+});
+
+
+
 });
 </script>
   
