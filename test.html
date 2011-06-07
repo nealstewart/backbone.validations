@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
+                    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <script src="http://code.jquery.com/jquery-latest.js"></script>
+  <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
+  <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
+
+  <script type="text/javascript" src="http://documentcloud.github.com/underscore/underscore.js"></script>
+  <script type="text/javascript" src="http://documentcloud.github.com/backbone/backbone.js"></script>
+  <script type="text/javascript" src="backbone.validations.js"></script>
+
+
+<script>
+$(document).ready(function(){
+
+module("general tests");
+test("set returns false when failing", function() {
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        presence : true
+      }
+    }
+  });
+
+  var test = new TestModel;
+
+  equals(test.set({}), false);
+  });
+
+test("set triggers an error event on the model", function() {
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        presence : true
+      }
+    }
+  });
+
+  var test = new TestModel;
+  var errorCallbackCalled = false;
+
+  test.bind('error', function() {
+    errorCallbackCalled = true;
+    });
+
+  test.set({});
+
+  ok(errorCallbackCalled);
+});
+
+test("set triggers an error event named after the attribute, on the model", function() {
+  var nameOfAttribute = "name";
+  var validateObject = {};
+  validateObject[nameOfAttribute] = {presence : true};
+
+  var TestModel = Backbone.Model.extend({
+    validate : validateObject
+  });
+
+  var test = new TestModel;
+  var errorCallbackCalled = false;
+
+  test.bind('error:' + nameOfAttribute, function() {
+    errorCallbackCalled = true;
+  });
+
+  test.set({});
+
+  ok(errorCallbackCalled);
+});
+
+
+test("providing a direct override prevents normal and named errors from being triggered", function() {
+  var nameOfAttribute = "name";
+  var validateObject = {};
+  validateObject[nameOfAttribute] = {presence : true};
+
+  var TestModel = Backbone.Model.extend({
+    validate : validateObject
+  });
+
+  var test = new TestModel;
+
+  var nameCallbackCalled = false;
+  test.bind('error:' + nameOfAttribute, function() {
+    nameCallbackCalled = true;
+  });
+
+  var normalCallbackCalled = false;
+  test.bind('error', function() {
+    normalCallbackCalled = true;
+  });
+
+  var overrideCallbackCalled = false;
+  var overrideCallback = function() {
+    overrideCallbackCalled = true;
+  };
+
+  test.set({}, {
+    error: overrideCallback
+  });
+
+  equals(false, normalCallbackCalled, "normal callback called");
+  equals(false, nameCallbackCalled, "name callback called");
+  ok(overrideCallbackCalled);
+});
+
+module("presence validator");
+test("doesn't set other values, when there is no current value, and no value is passed", function() {
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        presence : true
+      }
+    }
+  });
+
+  var t = new TestModel;
+
+  equals(t.set({woo: "hoo"}), false);
+
+  equals(t.get('woo'), undefined);
+});
+
+
+test("won't allow a value to be set to null, or blank", function() {
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        presence : true
+      }
+    }
+  });
+
+  var t = new TestModel;
+
+  equals(t.set({name: null}), false);
+  equals(t.set({name: ""}), false);
+});
+
+
+});
+</script>
+  
+</head>
+<body>
+  <h1 id="qunit-header">QUnit example</h1>
+ <h2 id="qunit-banner"></h2>
+ <div id="qunit-testrunner-toolbar"></div>
+ <h2 id="qunit-userAgent"></h2>
+ <ol id="qunit-tests"></ol>
+ <div id="qunit-fixture">test markup, will be hidden</div>
+</body>
+</html>
