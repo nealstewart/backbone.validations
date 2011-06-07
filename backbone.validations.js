@@ -239,7 +239,7 @@ Backbone.Validations.Model = inherits(Backbone.Model, {
 Backbone.Model = Backbone.Validations.Model;
 
 // Requisite noConflict
-Backbone.Validations.noConflict =  function() {
+Backbone.Validations.Model.noConflict =  function() {
   Backbone.Model = oldModel;
 };
 

@@ -63,9 +63,9 @@ model.validate. It receives the value you're setting. Have it return a non falsy
 
 I am stomping ALL OVER the original Backbone.Model. If you feel skeezy about this, then feel free to call:
     
-    Backbone.Validations.noConflict();
+    Backbone.Model.noConflict();
 
-Which will restore Backbone.Model to its' rightful spot, and allow you to find the new validating model at:
+Both will restore Backbone.Model to its' rightful spot, and allow you to find the new validating model at:
     
     Backbone.Validations.Model
 
