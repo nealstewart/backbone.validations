@@ -1,12 +1,19 @@
-This is a work in progress.
-
-You use Backbone.Validations like so ...
+So what if you could validate your Backbone Models like this:
 
     var AwesomeModel = Backbone.Model.extend({
       validate : {
-        "awesome" : { presence : true }
+        "name" : { 
+          presence : true,
+          length : {
+            min : 3,
+            max : 150
+          }
+        }
       }
     });
+
+Now you can.
+
 
 Just like before, validations don't get run until you start setting attributes.
 
@@ -53,6 +60,15 @@ You can also use a custom attribute validator:
 
 The custom validation function works in a similar manner to the normal
 model.validate. It receives the value you're setting. Have it return a non falsy value if you'd like it to throw an error.
+
+I am stomping ALL OVER the original Backbone.Model. If you feel skeezy about this, then feel free to call:
+    
+    Backbone.Validations.noConflict();
+
+Which will restore Backbone.Model to its' rightful spot, and allow you to find the new validating model at:
+    
+    Backbone.Validations.Model
+
 
 TODO:
 
