@@ -140,6 +140,67 @@ test("won't allow a value to be set to null, or blank", function() {
   equals(t.set({name: ""}), false);
 });
 
+module("custom attribute validator");
+test("it calls the custom validator", function() {
+  var customValidatorCalled = false;
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        custom : "nameOfMethod"
+      }
+    },
+    
+    nameOfMethod : function() {
+      customValidatorCalled = true;
+    }
+  });
+  
+  var t = new TestModel;
+  t.set({name: "whatever"});
+  ok(customValidatorCalled);
+});
+
+test("can cause an error", function() {
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        custom : "nameOfMethod"
+      }
+    },
+    
+    nameOfMethod : function() {
+      return "error";
+    }
+  });
+  
+  var t = new TestModel;
+  equals(t.set({name: "whatever"}), false);
+});
+
+test("it's included in the error", function() {
+  var errorResponse = "blech";
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        custom : "nameOfMethod"
+      }
+    },
+    
+    nameOfMethod : function() {
+      return errorResponse;
+    }
+  });
+
+  var t = new TestModel;
+  var errorResponseWasIncluded = false;
+  t.bind('error', function(model, errors) {
+    errorResponseWasIncluded = _.include(errors.name, errorResponse);
+  });
+  
+  t.set({name: "blech"});
+
+  ok(errorResponseWasIncluded);
+});
 
 });
 </script>
