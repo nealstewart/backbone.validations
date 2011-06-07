@@ -1,6 +1,4 @@
 (function(Backbone) {
-// Save the old Backbone
-
 // Premade Validators
 var validators = {
   "presence" : function(attributeName, valueToSet) {
@@ -197,9 +195,6 @@ function newPerformValidation(attrs, options) {
 Backbone.Validations = {};
 
 
-// Constructor for our new Validations Model
-var oldModel = Backbone.Model;
-
 
 // the following inheritance method is ripped straight from Backbone.
 // it would be nice if backbone made this public
@@ -221,6 +216,10 @@ var inherits = function(parent, protoProps, staticProps) {
   return child;
 };
 
+// save the old backbone
+var oldModel = Backbone.Model;
+
+// Constructor for our new Validations Model
 Backbone.Validations.Model = inherits(Backbone.Model, {
   constructor : function() {
     // if they pass an object, construct the new validations
