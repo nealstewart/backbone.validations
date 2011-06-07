@@ -1,8 +1,12 @@
 (function(Backbone) {
 // Premade Validators
 var validators = {
-  "presence" : function(attributeName, valueToSet) {
-    var currentValue = this.get(attributeName);
+  "custom" : function(methodName, attributeName, model, valueToSet) {
+    return model[methodName](attributeName, valueToSet);
+  },
+
+  "presence" : function(attributeName, model, valueToSet) {
+    var currentValue = model.get(attributeName);
     var isNotAlreadySet = _.isUndefined(currentValue);
 
     var isNotBeingSet = _.isUndefined(valueToSet);
@@ -15,7 +19,17 @@ var validators = {
     }
   },
 
-  "length" : function(minLength, maxLength, attributeName, valueToSet) {
+  "format" : function(pattern, attributeName, model, valueToSet) {
+    if (_.isString(valueToSet)) {
+      if (valueToSet.match(pattern)) {
+        return false;
+      } else {
+        return "format";
+      }
+    }
+  },
+
+  "length" : function(minLength, maxLength, attributeName, model, valueToSet) {
     var undef;
     if (typeof valueToSet === "string") {
       var underMinLength;
@@ -28,8 +42,8 @@ var validators = {
       }
 
       var errors = [];
-      if (underMinLength) errors.push( "under_min" );
-      if (overMaxLength)  errors.push( "over_max" );
+      if (underMinLength) errors.push( "minLength" );
+      if (overMaxLength)  errors.push( "maxLength" );
 
       return errors.length ? errors : false;
     }
@@ -65,7 +79,7 @@ function newValidate(params) {
     valueToSet = attributes[attrName];
     validateAttribute = this._attributeValidators[attrName];
     if (validateAttribute)  {
-      errorsForAttribute = validateAttribute.call(this, valueToSet, hasOverridenError, options);
+      errorsForAttribute = validateAttribute(this, valueToSet, hasOverridenError, options);
     }
     if (errorsForAttribute) {
       errorHasOccured = true;
@@ -88,7 +102,7 @@ function newValidate(params) {
      and either returns nothing (undefined), 
      or the error name (string).
   */
-function createValidator(model, attributeName, type, description) {
+function createValidator(attributeName, type, description) {
   var validator,
       validatorMethod,
       customValidator;
@@ -102,6 +116,30 @@ function createValidator(model, attributeName, type, description) {
       validator = validators.presence;
       break;
     }
+    case "format" : {
+      var pattern;
+      if (_.isString(description)) {
+        switch (description) {
+          case "date" : {
+            pattern = /^[0-3]?[0-9]\/[01]?[0-9]\/[12][90][0-9][0-9]$/;
+            break;
+          }
+          default : {
+            throw "improper date";
+          }
+        }
+
+      } else if(_.isRegExp(description)) {
+        pattern = description;
+
+      } else {
+        throw "improper format given to validate.";
+      }
+      validator = validators.format;
+      validator = _.bind(validator, null, pattern);
+
+      break;
+    }
     case "length" : {
       validator = validators.length;
       var minLength = description.min;
@@ -109,16 +147,13 @@ function createValidator(model, attributeName, type, description) {
       var minLengthNotSet = _.isNull(minLength) || _.isUndefined(minLength);
       var maxLengthNotSet = _.isNull(maxLength) || _.isUndefined(maxLength);
       if (minLengthNotSet && maxLengthNotSet) throw "need to set either a max or min length";
-      validator = _.bind(validator, this, minLength, maxLength);
+      validator = _.bind(validator, null, minLength, maxLength);
       break;
     }
     case "custom" : {
       if (!_.isString(description)) { throw "Custom error callback names must be a string"; }
-      validatorMethod = model[description];
 
-      if (!_.isFunction(validatorMethod)) { throw "Custom validator '"+description+"' is not a function on the model"; }
-
-      validator = validatorMethod;
+      validator = _.bind(validators.custom, null, description);
       break;
     }
     default : {
@@ -126,29 +161,29 @@ function createValidator(model, attributeName, type, description) {
     }
   }
 
-  validator = _.bind(validator, model, attributeName);
+  validator = _.bind(validator, null, attributeName);
 
   return validator;
 }
 
-function createAttributeValidator(model, attributeName, attributeDescription) {
+function createAttributeValidator(attributeName, attributeDescription) {
   var validatorsForAttribute = [],
       type,
       desc;
 
   for (type in attributeDescription) {
     desc = attributeDescription[type];
-    validatorsForAttribute.push(createValidator(model, attributeName, type, desc));
+    validatorsForAttribute.push(createValidator(attributeName, type, desc));
   }
 
-  return function(valueToSet, hasOverridenError, options) {
+  return function(model, valueToSet, hasOverridenError, options) {
     var validator,
         result,
         errors = [];
 
     for (var i = 0, length = validatorsForAttribute.length; i < length; i++) {
       validator = validatorsForAttribute[i];
-      result = validator.call(this, valueToSet);
+      result = validator(model, valueToSet);
       if (result) {
         if (_.isArray(result)) {
           errors = errors.concat(result);
@@ -160,7 +195,7 @@ function createAttributeValidator(model, attributeName, attributeDescription) {
     
     if (errors.length) {
       if (!hasOverridenError) {
-          this.trigger('error:'+attributeName, this, errors, options);
+          model.trigger('error:'+attributeName, model, errors, options);
       }
       return errors;
     } else {
@@ -169,13 +204,13 @@ function createAttributeValidator(model, attributeName, attributeDescription) {
   };
 }
 
-function createValidators(model, modelValidations) {
+function createValidators(modelValidations) {
   var attributeValidations,
       attributeValidators = {};
 
   for (var attrName in modelValidations) {
     attributeValidations = modelValidations[attrName];
-    attributeValidators[attrName] = createAttributeValidator(model, attrName, attributeValidations);
+    attributeValidators[attrName] = createAttributeValidator(attrName, attributeValidations);
   }
 
   return attributeValidators;
@@ -225,7 +260,7 @@ Backbone.Validations.Model = inherits(Backbone.Model, {
     // if they pass an object, construct the new validations
     if (typeof this.validate === "object" && this.validate !== null) {
       if (!this.constructor.prototype._attributeValidators) {
-        this.constructor.prototype._attributeValidators = createValidators(this, this.validate);
+        this.constructor.prototype._attributeValidators = createValidators(this.validate);
         this.constructor.prototype.validate = newValidate;
         this.constructor.prototype._performValidation = newPerformValidation;
       }

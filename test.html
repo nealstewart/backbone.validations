@@ -255,6 +255,22 @@ test("given a maximum and minimum length, it will error if given a string that i
 });
 
 
+module("format validation");
+test("date", function() {
+  var DateModel = Backbone.Model.extend({
+    validate : {
+      date : {
+        format : "date"
+      }
+    }
+  });
+  
+  var d = new DateModel;
+  ok(d.set({date: "01/01/2011"}));
+  equals(d.set({date: "99/01/2011"}), false);
+  ok(d.set({date: undefined}));
+});
+
 
 });
 </script>
