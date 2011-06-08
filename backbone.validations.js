@@ -33,7 +33,7 @@ var validators = {
 
   "length" : function(minLength, maxLength, attributeName, model, valueToSet) {
     var undef;
-    if (typeof valueToSet === "string") {
+    if (_.isString(valueToSet)) {
       var underMinLength;
       if (minLength > 0) {
         underMinLength = valueToSet.length < minLength;
