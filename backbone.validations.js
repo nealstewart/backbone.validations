@@ -1,5 +1,7 @@
 (function(Backbone) {
 // Premade Validators
+Backbone.Validations = {};
+
 var validators = {
   "custom" : function(methodName, attributeName, model, valueToSet) {
     return model[methodName](attributeName, valueToSet);
@@ -48,6 +50,22 @@ var validators = {
       return errors.length ? errors : false;
     }
   }
+};
+
+var customValidators = {};
+var getCustomValidator = function(name) {
+  var cv = customValidators[name];
+  if (!cv) throw "custom validator '"+name+"' could not be found.";
+
+  return cv;
+};
+
+Backbone.Validations.addValidator = function(name, validator) {
+  if (validators.hasOwnProperty(name) || customValidators.hasOwnProperty(name)) {
+    throw "existing validator";
+  } 
+
+  customValidators[name] = validator;
 };
 
 
@@ -157,7 +175,10 @@ function createValidator(attributeName, type, description) {
       break;
     }
     default : {
-      throw "Improper validation type '"+type+"'" ;
+      validator = _.bind(getCustomValidator(type), null, description);
+      if (!validator) {
+        throw "Improper validation type '"+type+"'" ;
+      }
     }
   }
 
@@ -227,7 +248,6 @@ function newPerformValidation(attrs, options) {
   return oldPerformValidation.call(this, newAttrs, options);
 }
 
-Backbone.Validations = {};
 
 
 
@@ -272,6 +292,7 @@ Backbone.Validations.Model = inherits(Backbone.Model, {
 
 // Override Backbone.Model with our new Model
 Backbone.Model = Backbone.Validations.Model;
+
 
 // Requisite noConflict
 Backbone.Validations.Model.noConflict =  function() {

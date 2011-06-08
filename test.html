@@ -107,6 +107,63 @@ test("providing a direct override prevents normal and named errors from being tr
   ok(overrideCallbackCalled);
 });
 
+module("Backbone.Validations.addValidator");
+test("Custom validators can be provided, and can be added to a model, and will be executed.", function() {
+  var testModel, optionsPassed, valueToBeSet;
+  var testModelMatched = false,
+      optionsPassedMatched = false,
+      valueToBeSetMatched = false;
+
+  var customValidator = function(options, attributeName, model, valueToSet) {
+    testModelMatched = model === testModel;
+    optionsMatched = options == optionsPassed;
+    valueToBeSetMatched = valueToSet === valueToBeSet;
+  };
+
+
+  Backbone.Validations.addValidator("customValidator", customValidator);
+
+  optionsPassed = {};
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      "name" : {
+        customValidator : optionsPassed
+      }
+    }
+  });
+
+  testModel = new TestModel;
+  valueToBeSet = "blech";
+  testModel.set({name: valueToBeSet});
+
+  ok(testModelMatched);
+  ok(optionsMatched);
+  ok(valueToBeSetMatched);
+});
+
+test("It can't override an existing validation, custom or preset.", function() {
+  var presetThrowsError = false,
+    doubleCustomThrowsError = false;
+
+  try {
+    Backbone.Validations.addValidator("presence", function() {});
+  } catch (err) {
+    presetThrowsError = true;
+  }
+
+  ok(presetThrowsError, 'preset threw error');
+
+  Backbone.Validations.addValidator("dasds6231237123", function() {});
+  try {
+    Backbone.Validations.addValidator("dasds6231237123", function() {});
+  } catch (err) {
+    doubleCustomThrowsError = true;
+  }
+
+  ok(doubleCustomThrowsError);
+});
+
+
 module("presence validator");
 test("doesn't set other values, when there is no current value, and no value is passed", function() {
   var TestModel = Backbone.Model.extend({
