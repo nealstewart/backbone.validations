@@ -7,47 +7,48 @@ var validators = {
     return model[methodName](attributeName, valueToSet);
   },
 
-  "presence" : function(attributeName, model, valueToSet) {
+  "required" : function(attributeName, model, valueToSet) {
     var currentValue = model.get(attributeName);
     var isNotAlreadySet = _.isUndefined(currentValue);
-
     var isNotBeingSet = _.isUndefined(valueToSet);
-
-    if (_.isNull(valueToSet) || valueToSet === "" ||
-         (isNotBeingSet && isNotAlreadySet)) {
-      return "presence";
+    if (_.isNull(valueToSet) || valueToSet === "" || (isNotBeingSet && isNotAlreadySet)) {
+      return "required";
     } else {
       return false;
     }
   },
 
-  "format" : function(pattern, attributeName, model, valueToSet) {
+  "pattern" : function(pattern, attributeName, model, valueToSet) {
     if (_.isString(valueToSet)) {
       if (valueToSet.match(pattern)) {
         return false;
       } else {
-        return "format";
+        return "pattern";
       }
     }
   },
 
-  "length" : function(minLength, maxLength, attributeName, model, valueToSet) {
-    var undef;
+  "min" : function(minimumValue, attributeName, model, valueToSet) {
+    if (valueToSet < minimumValue) {
+      return "min";
+    }
+  },
+
+  "max" : function(maximumValue, attributeName, model, valueToSet) {
+    if (valueToSet > maximumValue) {
+      return "max";
+    }
+  },
+
+  "minlength" : function(minlength, attributeName, model, valueToSet) {
     if (_.isString(valueToSet)) {
-      var underMinLength;
-      if (minLength > 0) {
-        underMinLength = valueToSet.length < minLength;
-      }
-      var overMaxLength;
-      if (maxLength > 0) {
-        overMaxLength = valueToSet.length > maxLength;
-      }
+      if (valueToSet.length < minlength) return "minlength";
+    }
+  },
 
-      var errors = [];
-      if (underMinLength) errors.push( "minLength" );
-      if (overMaxLength)  errors.push( "maxLength" );
-
-      return errors.length ? errors : false;
+  "maxlength" : function(maxlength, attributeName, model, valueToSet) {
+    if (_.isString(valueToSet)) {
+      if (valueToSet.length > maxlength) return "maxlength";
     }
   }
 };
@@ -56,7 +57,6 @@ var customValidators = {};
 var getCustomValidator = function(name) {
   var cv = customValidators[name];
   if (!cv) throw "custom validator '"+name+"' could not be found.";
-
   return cv;
 };
 
@@ -64,7 +64,6 @@ Backbone.Validations.addValidator = function(name, validator) {
   if (validators.hasOwnProperty(name) || customValidators.hasOwnProperty(name)) {
     throw "existing validator";
   } 
-
   customValidators[name] = validator;
 };
 
@@ -77,7 +76,7 @@ Backbone.Validations.addValidator = function(name, validator) {
   The returned object looks like this:
 
     {
-      attributeName : ["presence", "of", "errors"],
+      attributeName : ["required", "of", "errors"],
       otherAttributeName: ["and", "so", "on"]
     }
 
@@ -86,27 +85,31 @@ function newValidate(params) {
   var hasOverridenError = params.hasOverridenError,
       attributes = params.attributes,
       options = params.options,
-      errorHasOccured = false,
-      errors = {},
-      errorsForAttribute,
-      attrName,
-      valueToSet,
-      validateAttribute;
+      errors = {};
 
-  for (attrName in this._attributeValidators) {
-    valueToSet = attributes[attrName];
-    validateAttribute = this._attributeValidators[attrName];
+  for (var attrName in this._attributeValidators) {
+    var valueToSet = attributes[attrName];
+    var validateAttribute = this._attributeValidators[attrName];
     if (validateAttribute)  {
-      errorsForAttribute = validateAttribute(this, valueToSet, hasOverridenError, options);
+      var errorsForAttribute = validateAttribute(this, valueToSet, hasOverridenError, options);
     }
     if (errorsForAttribute) {
-      errorHasOccured = true;
+      var errorHasOccured = true;
       errors[attrName] = errorsForAttribute;
     } 
   }
 
   return errorHasOccured ? errors : false;
 }
+
+function createMinValidator(attributeName, minimumValue) {
+  return _.bind(validators.min, null, minimumValue);
+}
+
+function createMaxValidator(attributeName, maximumValue) {
+  return _.bind(validators.max, null, maximumValue);
+}
+
 
 /* createValidator takes in:
     - the model
@@ -124,65 +127,18 @@ function createValidator(attributeName, type, description) {
   var validator,
       validatorMethod,
       customValidator;
+
+  validator = validators[type];
+
+  if (!validator) { validator = getCustomValidator(type); }
+
+  if (!validator) { throw "Improper validation type '"+type+"'" ; }
   
-  switch (type) {
-    case "presence" : {
-      if (!description) {
-        throw "presence should only be given true";
-      }
-
-      validator = validators.presence;
-      break;
-    }
-    case "format" : {
-      var pattern;
-      if (_.isString(description)) {
-        switch (description) {
-          case "date" : {
-            pattern = /^[0-3]?[0-9]\/[01]?[0-9]\/[12][90][0-9][0-9]$/;
-            break;
-          }
-          default : {
-            throw "improper date";
-          }
-        }
-
-      } else if(_.isRegExp(description)) {
-        pattern = description;
-
-      } else {
-        throw "improper format given to validate.";
-      }
-      validator = validators.format;
-      validator = _.bind(validator, null, pattern);
-
-      break;
-    }
-    case "length" : {
-      validator = validators.length;
-      var minLength = description.min;
-      var maxLength = description.max; 
-      var minLengthNotSet = _.isNull(minLength) || _.isUndefined(minLength);
-      var maxLengthNotSet = _.isNull(maxLength) || _.isUndefined(maxLength);
-      if (minLengthNotSet && maxLengthNotSet) throw "need to set either a max or min length";
-      validator = _.bind(validator, null, minLength, maxLength);
-      break;
-    }
-    case "custom" : {
-      if (!_.isString(description)) { throw "Custom error callback names must be a string"; }
-
-      validator = _.bind(validators.custom, null, description);
-      break;
-    }
-    default : {
-      validator = _.bind(getCustomValidator(type), null, description);
-      if (!validator) {
-        throw "Improper validation type '"+type+"'" ;
-      }
-    }
+  if (type !== "required") { // doesn't need the description
+    validator = _.bind(validator, null, description, attributeName);
+  } else {
+    validator = _.bind(validator, null, attributeName);
   }
-
-  validator = _.bind(validator, null, attributeName);
 
   return validator;
 }

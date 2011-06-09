@@ -19,7 +19,7 @@ test("set returns false when failing", function() {
   var TestModel = Backbone.Model.extend({
     validate : {
       name : {
-        presence : true
+        required : true
       }
     }
   });
@@ -33,7 +33,7 @@ test("set triggers an error event on the model", function() {
   var TestModel = Backbone.Model.extend({
     validate : {
       name : {
-        presence : true
+        required : true
       }
     }
   });
@@ -53,7 +53,7 @@ test("set triggers an error event on the model", function() {
 test("set triggers an error event named after the attribute, on the model", function() {
   var nameOfAttribute = "name";
   var validateObject = {};
-  validateObject[nameOfAttribute] = {presence : true};
+  validateObject[nameOfAttribute] = {required : true};
 
   var TestModel = Backbone.Model.extend({
     validate : validateObject
@@ -75,7 +75,7 @@ test("set triggers an error event named after the attribute, on the model", func
 test("providing a direct override prevents normal and named errors from being triggered", function() {
   var nameOfAttribute = "name";
   var validateObject = {};
-  validateObject[nameOfAttribute] = {presence : true};
+  validateObject[nameOfAttribute] = {required : true};
 
   var TestModel = Backbone.Model.extend({
     validate : validateObject
@@ -116,7 +116,7 @@ test("Custom validators can be provided, and can be added to a model, and will b
 
   var customValidator = function(options, attributeName, model, valueToSet) {
     testModelMatched = model === testModel;
-    optionsMatched = options == optionsPassed;
+    optionsPassedMatched = options == optionsPassed;
     valueToBeSetMatched = valueToSet === valueToBeSet;
   };
 
@@ -137,7 +137,7 @@ test("Custom validators can be provided, and can be added to a model, and will b
   testModel.set({name: valueToBeSet});
 
   ok(testModelMatched);
-  ok(optionsMatched);
+  ok(optionsPassedMatched);
   ok(valueToBeSetMatched);
 });
 
@@ -146,7 +146,7 @@ test("It can't override an existing validation, custom or preset.", function() {
     doubleCustomThrowsError = false;
 
   try {
-    Backbone.Validations.addValidator("presence", function() {});
+    Backbone.Validations.addValidator("required", function() {});
   } catch (err) {
     presetThrowsError = true;
   }
@@ -164,12 +164,12 @@ test("It can't override an existing validation, custom or preset.", function() {
 });
 
 
-module("presence validator");
+module("required validator");
 test("doesn't set other values, when there is no current value, and no value is passed", function() {
   var TestModel = Backbone.Model.extend({
     validate : {
       name : {
-        presence : true
+        required : true
       }
     }
   });
@@ -186,7 +186,7 @@ test("won't allow a value to be set to null, or blank", function() {
   var TestModel = Backbone.Model.extend({
     validate : {
       name : {
-        presence : true
+        required : true
       }
     }
   });
@@ -259,15 +259,13 @@ test("it's included in the error", function() {
   ok(errorResponseWasIncluded);
 });
 
-module("length validator");
+module("minlength validator");
 test("given a minimum length, it will error if given a string that is a smaller", function() {
   var lengthToBeLessThan = 3;
   var TestModel = Backbone.Model.extend({
     validate : {
       name : {
-        length : {
-          min: 3
-        }
+        minlength : 3
       }
     }
   });
@@ -277,13 +275,12 @@ test("given a minimum length, it will error if given a string that is a smaller"
   equals(t.set({name : "al"}), false);
 });
 
+module("maxlength validator");
 test("given a maximum length, it will error if given a string that is a larger", function() {
   var TestModel = Backbone.Model.extend({
     validate : {
       name : {
-        length : {
-          max: 4
-        }
+        maxlength : 4
       }
     }
   });
@@ -293,46 +290,12 @@ test("given a maximum length, it will error if given a string that is a larger",
   equals(t.set({name : "al"}), t);
 });
 
-test("given a maximum and minimum length, it will error if given a string that is outside those bounds", function() {
-  var TestModel = Backbone.Model.extend({
-    validate : {
-      name : {
-        length : {
-          min: 4,
-          max: 6
-        }
-      }
-    }
-  });
-
-  var t = new TestModel;
-  equals(t.set({name : "bollocksareawesome"}), false);
-  equals(t.set({name : "al"}), false);
-  equals(t.set({name : "neal"}), t);
-});
-
-
-module("format validation");
-test("date", function() {
-  var DateModel = Backbone.Model.extend({
-    validate : {
-      date : {
-        format : "date"
-      }
-    }
-  });
-  
-  var d = new DateModel;
-  ok(d.set({date: "01/01/2011"}));
-  equals(d.set({date: "99/01/2011"}), false);
-  ok(d.set({date: undefined}));
-});
-
+module("pattern validation");
 test("pattern /^test/", function() {
   var PatternTestModel = Backbone.Model.extend({
     validate : {
       name : {
-        format : /^test/
+        pattern : /^test/
       }
     }
   });
@@ -340,6 +303,36 @@ test("pattern /^test/", function() {
   var newTestModel = new PatternTestModel;
   ok(newTestModel.set({name:"test"}));
   equals(newTestModel.set({name:"broken"}), false);
+});
+
+module("min validation");
+test("works", function() {
+  var MinTestModel = Backbone.Model.extend({
+    validate : {
+      size : {
+        min : 3
+      }
+    } 
+  });
+  
+  var m = new MinTestModel;
+  equals(m.set({size: 2}), false);
+  ok(m.set({size: 5}));
+  });
+
+module("max validation");
+test("works", function() {
+  var MaxTestModel = Backbone.Model.extend({
+    validate : {
+      size : {
+        max : 3
+      }
+    } 
+  });
+  
+  var m = new MaxTestModel;
+  equals(m.set({size: 5}), false);
+  ok(m.set({size: 2}));
 });
 
 });
