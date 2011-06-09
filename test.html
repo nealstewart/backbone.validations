@@ -335,6 +335,37 @@ test("works", function() {
   ok(m.set({size: 2}));
 });
 
+module("type validations");
+test("email", function() {
+  var EmailTestModel = Backbone.Model.extend({
+    validate : {
+      email : {
+        type : "email"
+      }
+    }
+  });
+
+  var m = new EmailTestModel;
+  equals(m.set({email : "boogers"}), false);
+  ok(m.set({email : "neal@snot.ca"}));
+});
+
+
+test("url", function() {
+  var UrlTestModel = Backbone.Model.extend({
+    validate : {
+      link : {
+        type : "url"
+      }
+    }
+  });
+
+  var m = new UrlTestModel;
+  equals(m.set({link : "boogers"}), false);
+  ok(m.set({link : "http://snot.ca"}));
+  ok(m.set({link : "ftp://snot.ca"}));
+});
+
 });
 </script>
   
