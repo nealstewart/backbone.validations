@@ -43,7 +43,7 @@ test("set triggers an error event on the model", function() {
 
   test.bind('error', function() {
     errorCallbackCalled = true;
-    });
+  });
 
   test.set({});
 
@@ -365,6 +365,48 @@ test("url", function() {
   ok(m.set({link : "http://snot.ca"}));
   ok(m.set({link : "ftp://snot.ca"}));
 });
+
+
+test("number", function() {
+  var NumberTestModel = Backbone.Model.extend({
+    validate : {
+      address : {
+        type : "number"
+      }
+    }
+  });
+
+  var m = new NumberTestModel();
+  ok(m.set({address : "33"}));
+  ok(m.set({address : "33.333"}));
+  equals(m.set({address : "33.333f"}), false);
+  equals(m.set({address : "f33.333f"}), false);
+  equals(m.set({address : "."}), false);
+  ok(m.set({address : "089"}));
+  });
+
+module("test for overlaps");
+test("different models shouldn't affect one another", function() {
+  var NameModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        required: "true"
+      }
+    }
+  });
+
+  var UnnameModel = Backbone.Model.extend({
+  });
+
+  var nm = new NameModel();
+  nm.set({name: "Neal"});
+  equal(nm.set({name: ""}), false);
+
+  var nm = new UnnameModel();
+  nm.set({name: "Neal"});
+  ok(nm.set({name: ""}));
+});
+
 
 });
 </script>

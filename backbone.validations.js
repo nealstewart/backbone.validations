@@ -27,11 +27,15 @@ var validators = {
   },
 
   "url" : function(type, attributeName, model, valueToSet) {
-    // taken from jQuery UI validation 
+    // taken from jQuery UI validation
     var urlRegex = /^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i;
     if (_.isString(valueToSet) && !valueToSet.match(urlRegex)) {
       return "url";
     }
+  },
+
+  "number" : function(type, attributeName, model, valueToSet) {
+    return isNaN(valueToSet) ? 'number' : undefined;
   },
 
   "pattern" : function(pattern, attributeName, model, valueToSet) {
@@ -58,13 +62,13 @@ var validators = {
 
   "minlength" : function(minlength, attributeName, model, valueToSet) {
     if (_.isString(valueToSet)) {
-      if (valueToSet.length < minlength) return "minlength";
+      if (valueToSet.length < minlength) { return "minlength"; }
     }
   },
 
   "maxlength" : function(maxlength, attributeName, model, valueToSet) {
     if (_.isString(valueToSet)) {
-      if (valueToSet.length > maxlength) return "maxlength";
+      if (valueToSet.length > maxlength) { return "maxlength"; }
     }
   }
 };
@@ -72,14 +76,14 @@ var validators = {
 var customValidators = {};
 var getCustomValidator = function(name) {
   var cv = customValidators[name];
-  if (!cv) throw "custom validator '"+name+"' could not be found.";
+  if (!cv) { throw "custom validator '"+name+"' could not be found."; }
   return cv;
 };
 
 Backbone.Validations.addValidator = function(name, validator) {
   if (validators.hasOwnProperty(name) || customValidators.hasOwnProperty(name)) {
     throw "existing validator";
-  } 
+  }
   customValidators[name] = validator;
 };
 
@@ -98,7 +102,9 @@ Backbone.Validations.addValidator = function(name, validator) {
 
   */
 function newValidate(params) {
-  var hasOverridenError = params.hasOverridenError,
+  var errorsForAttribute,
+      errorHasOccured,
+      hasOverridenError = params.hasOverridenError,
       attributes = params.attributes,
       options = params.options,
       errors = {};
@@ -107,12 +113,12 @@ function newValidate(params) {
     var valueToSet = attributes[attrName];
     var validateAttribute = this._attributeValidators[attrName];
     if (validateAttribute)  {
-      var errorsForAttribute = validateAttribute(this, valueToSet, hasOverridenError, options);
+      errorsForAttribute = validateAttribute(this, valueToSet, hasOverridenError, options);
     }
     if (errorsForAttribute) {
-      var errorHasOccured = true;
+      errorHasOccured = true;
       errors[attrName] = errorsForAttribute;
-    } 
+    }
   }
 
   return errorHasOccured ? errors : false;
@@ -136,7 +142,7 @@ function createMaxValidator(attributeName, maximumValue) {
    returns a function that takes in:
      - the value being set for the attribute
    
-     and either returns nothing (undefined), 
+     and either returns nothing (undefined),
      or the error name (string).
   */
 function createValidator(attributeName, type, description) {
@@ -186,7 +192,7 @@ function createAttributeValidator(attributeName, attributeDescription) {
         } else {
           errors.push(result);
         }
-      }  
+      }
     }
     
     if (errors.length) {
@@ -239,8 +245,8 @@ var inherits = function(parent, protoProps, staticProps) {
   }
   ctor.prototype = parent.prototype;
   child.prototype = new ctor();
-  if (protoProps) _.extend(child.prototype, protoProps);
-  if (staticProps) _.extend(child, staticProps);
+  if (protoProps) { _.extend(child.prototype, protoProps); }
+  if (staticProps) { _.extend(child, staticProps); }
   child.prototype.constructor = child;
   child.__super__ = parent.prototype;
   return child;
@@ -274,4 +280,4 @@ Backbone.Validations.Model.noConflict =  function() {
   Backbone.Model = oldModel;
 };
 
-})(Backbone);
+}(Backbone));
