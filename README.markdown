@@ -37,6 +37,14 @@ Just include the script file, and then instead of passing a function as the vali
 
 This still works 
 
+    var ValidatingModel = Backbone.Model.extend({
+      validate: function(atts) {
+        // YUP!
+      }
+    });
+
+And so does this
+
     var vm = new ValidatingModel;
 
     vm.bind('error', function(model, errs) {
@@ -82,3 +90,11 @@ Or if you have some super complicated validator that you want to share among ALL
     });
 
 Give 'er a go!
+
+# OH AND THERE'S A NOCONFLICT
+
+    Backbone.Validations.noConflict();
+
+    // Now you can get at the validating model with this:
+
+    Backbone.Validations.Model
