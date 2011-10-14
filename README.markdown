@@ -10,7 +10,6 @@ Just include the script file, and then instead of passing a function as the vali
         name : {
           required  : true,
           pattern   : /[a-zA-Z]+/,
-          in        : ["Sam", "Harry"],
           minlength : 3,
           maxlength : 100
         },
@@ -24,6 +23,14 @@ Just include the script file, and then instead of passing a function as the vali
         },
         homepage : {
           type: "url"
+        },
+        "occupation" : {
+          in : [
+            "Lawyer",
+            "Doctor",
+            "Professor",
+            "Economist"
+          ]
         }
       }
     });
