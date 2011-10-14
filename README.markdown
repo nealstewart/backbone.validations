@@ -18,6 +18,12 @@ Just include the script file, and then instead of passing a function as the vali
           type: "number",
           min: 0,
           max: 200
+        },
+        email : {
+          type: "email"
+        },
+        homepage : {
+          type: "url"
         }
       }
     });
