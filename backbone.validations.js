@@ -18,6 +18,10 @@ var validators = {
     }
   },
 
+  "in" : function(whitelist, attributeName, model, valueToSet) {
+    return _.include(whitelist, valueToSet) ? undefined : "in";
+  },
+
   "email" : function(type, attributeName, model, valueToSet) {
     var emailRegex = new RegExp("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?");
   
@@ -228,9 +232,6 @@ function newPerformValidation(attrs, options) {
   
   return oldPerformValidation.call(this, newAttrs, options);
 }
-
-
-
 
 // the following inheritance method is ripped straight from Backbone.
 // it would be nice if backbone made this public
