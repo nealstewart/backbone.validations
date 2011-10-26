@@ -25,7 +25,7 @@ Just include the script file, and then instead of passing a function as the vali
           type: "url"
         },
         "occupation" : {
-          in : [}}]
+          in : [
             "Lawyer",
             "Doctor",
             "Professor",
