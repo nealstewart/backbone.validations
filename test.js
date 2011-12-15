@@ -227,7 +227,7 @@ test("it calls the custom validator", function() {
       }
     },
     
-    nameOfMethod : function() {
+    nameOfMethod : function(attributeName, attributeValue) {
       customValidatorCalled = true;
     }
   });
@@ -357,7 +357,6 @@ test("works", function() {
 
 
 module("whitelists");
-console.log("hm")
 test("valid colors", function() {
   var ColorTestingModel = Backbone.Model.extend({
     validate : {
@@ -446,6 +445,145 @@ test("different models shouldn't affect one another", function() {
   var um = new UnnameModel();
   um.set({name: "Neal"});
   ok(um.set({name: ""}));
+});
+
+module("WHOA A BUNCH AT ONCE");
+test("a whole bunch!", function() {
+  var ValidatingModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        required  : true,
+        pattern   : /[a-zA-Z]+/,
+        minlength : 3,
+        maxlength : 100
+      },
+      age : {
+        type: "number",
+        min: 0,
+        max: 200
+      }
+    }
+  });
+
+  var vm = new ValidatingModel;
+
+  ok(vm.set({name: "neal", age: 10}));
+  equals(vm.set({name: "neal", age: 201}), false);
+  equals(vm.set({name: "al", age: 10}), false);
+  equals(vm.set({name: "neal", age: -5}), false);
+  ok(vm.set({name: "neal", age: "10"}));
+  equals(vm.set({name: "neal", age: "201"}), false);
+  equals(vm.set({name: "ne", age: 1}), false);
+});
+
+module("The shape of validation errors");
+test("The errors object should be an object literal", function() {
+  var ValidatingModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        required: "true"
+      },
+      whatever: {
+        min: 10
+      }
+    }
+  });
+
+  var v = new ValidatingModel;
+
+  v.bind('error', function(model, errors) {
+    deepEqual(errors, {
+      name: ["required"],
+      whatever: ["min"]
+    });
+  });
+
+  v.set({whatever: 0})
+});
+
+
+test("proper shaped responses", function() {
+  var ValidatingModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        required  : true,
+        pattern   : /^[a-zA-Z]+$/,
+        minlength : 3,
+        maxlength : 100
+      },
+      age : {
+        type: "number",
+        min: 0,
+        max: 200
+      }
+    }
+  });
+
+  var vm = new ValidatingModel;
+
+  vm.bind('error', function(model, error) {
+    deepEqual({
+      age: ["max"]
+    }, error);
+  });
+
+  equals(vm.set({name: "neal", age: 201}), false);
+});
+
+test("maxlength", function() {
+  var ValidatingModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        required  : true,
+        pattern   : /^[a-zA-Z]+$/,
+        minlength : 3,
+        maxlength : 100
+      },
+      age : {
+        type: "number",
+        min: 0,
+        max: 200
+      }
+    }
+  });
+
+  var vm = new ValidatingModel;
+
+  vm.bind('error', function(model, error) {
+    deepEqual({
+      name: ["minlength"]
+    }, error);
+  });
+  
+  equals(vm.set({name: "al", age: 10}), false);
+});
+
+test("pattern", function() {
+  var ValidatingModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        required  : true,
+        pattern   : /^[a-zA-Z]+$/,
+        minlength : 3,
+        maxlength : 100
+      },
+      age : {
+        type: "number",
+        min: 0,
+        max: 200
+      }
+    }
+  });
+
+  var vm = new ValidatingModel;
+
+  vm.bind('error', function(model, error) {
+    deepEqual({
+      name: ["pattern"]
+    }, error);
+  });
+ 
+  equals(vm.set({name: "a323", age: 10}), false);
 });
 
 
