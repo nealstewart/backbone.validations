@@ -44,7 +44,7 @@ var validators = {
 
   "pattern" : function(pattern, attributeName, model, valueToSet) {
     if (_.isString(valueToSet)) {
-      if (valueToSet.match(pattern)) {
+      if (pattern.test(valueToSet)) {
         return false;
       } else {
         return "pattern";
