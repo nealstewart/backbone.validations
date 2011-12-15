@@ -112,7 +112,9 @@ vm.bind('error:name', function(model, errs) {
 ```javascript
 var CustomValidatingModel = Backbone.Model.extend({
   validate: {
-    custom: "supercomplicatedlogic"
+    radicality: {
+      custom: "supercomplicatedlogic" 
+    }    
   },
 
   supercomplicatedlogic: function(attributeName, attributeValue) {
