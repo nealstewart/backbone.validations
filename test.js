@@ -586,5 +586,36 @@ test("pattern", function() {
   equals(vm.set({name: "a323", age: 10}), false);
 });
 
+test("options success", function() {
+  var ValidatingModel = Backbone.Model.extend({
+    validate: {
+      name: {
+        required: true
+      },
+      number: {
+        required: true
+      }
+    }
+  });
+
+  var vm = new ValidatingModel;
+
+  vm.bind('error', function() {
+    ok(false);
+  });
+ 
+  equals(vm.set({
+    number: 10
+  }, {
+    success: function() {
+      ok(false);
+    },
+    error: function(model, error) {
+      deepEqual({
+        name: ["required"]
+      }, error);
+    }
+  }), false);
+});
 
 });
