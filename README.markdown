@@ -74,7 +74,10 @@ var ValidatingModel = Backbone.Model.extend({
   - url
   - number
 
-This still works 
+
+## Notes
+
+### Maintains the original Backbone validation interface
 
 ```javascript
 var ValidatingModel = Backbone.Model.extend({
@@ -84,7 +87,7 @@ var ValidatingModel = Backbone.Model.extend({
 });
 ```
 
-And so does this
+### Bind with error events
 
 ```javascript
 var vm = new ValidatingModel;
@@ -95,8 +98,7 @@ vm.bind('error', function(model, errs) {
 });
 ```
 
-
-But now you can do this:
+### Bind to specific attribute's errors
 
 ```javascript
 vm.bind('error:name', function(model, errs) {
@@ -105,7 +107,7 @@ vm.bind('error:name', function(model, errs) {
 });
 ```
 
-You can define a custom validator for a type of Model.
+### Define custom model validators
 
 ```javascript
 var CustomValidatingModel = Backbone.Model.extend({
@@ -121,7 +123,7 @@ var CustomValidatingModel = Backbone.Model.extend({
 });
 ```
 
-Or if you have some super complicated validator that you want to share among ALL of your Models you can do this:
+### Add Global Validators to Share among Models
 
 ```javascript
 Backbone.Validations.addValidator("awesomeValidator", function(options, attributeName, model, valueToSet) {
@@ -140,7 +142,7 @@ var CustomGlobalUsingValidationDudeModel = Backbone.Model.extend({
 
 Give 'er a go!
 
-# OH AND THERE'S A NOCONFLICT
+### OH AND THERE'S A NOCONFLICT
 
 ```javascript
 Backbone.Validations.noConflict();
