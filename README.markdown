@@ -60,6 +60,20 @@ var ValidatingModel = Backbone.Model.extend({
 });
 ```
 
+## Built-In Validations
+- in
+  - Takes an array of values, compares with ==
+- pattern
+  - Takes a regex
+- minlength
+- maxlength
+- min (number)
+- max
+- type
+  - email
+  - url
+  - number
+
 This still works 
 
 ```javascript
