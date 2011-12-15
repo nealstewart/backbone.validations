@@ -586,7 +586,7 @@ test("pattern", function() {
   equals(vm.set({name: "a323", age: 10}), false);
 });
 
-test("options success", function() {
+test("save options success", function() {
   var ValidatingModel = Backbone.Model.extend({
     validate: {
       name: {
@@ -604,7 +604,7 @@ test("options success", function() {
     ok(false);
   });
  
-  equals(vm.set({
+  vm.save({
     number: 10
   }, {
     success: function() {
@@ -615,7 +615,7 @@ test("options success", function() {
         name: ["required"]
       }, error);
     }
-  }), false);
+  });
 });
 
 });
