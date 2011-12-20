@@ -33,7 +33,7 @@ var ValidatingModel = Backbone.Model.extend({
   validate : {
     name : {
       required  : true,
-      pattern   : /[a-zA-Z]+/,
+      pattern   : /^[a-zA-Z]+$/,
       minlength : 3,
       maxlength : 100
     },
