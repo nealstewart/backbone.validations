@@ -126,19 +126,16 @@ Backbone.Validations.addValidator = function(name, validator) {
     }
 
   */
-function newValidate(params) {
+function newValidate(attributes) {
   var errorsForAttribute,
       errorHasOccured,
-      hasOverridenError = params.hasOverridenError,
-      attributes = params.attributes,
-      options = params.options,
       errors = {};
 
   for (var attrName in this._attributeValidators) {
     var valueToSet = attributes[attrName];
     var validateAttribute = this._attributeValidators[attrName];
     if (validateAttribute)  {
-      errorsForAttribute = validateAttribute(this, valueToSet, hasOverridenError, options);
+      errorsForAttribute = validateAttribute(this, valueToSet);
     }
     if (errorsForAttribute) {
       errorHasOccured = true;
@@ -221,9 +218,6 @@ function createAttributeValidator(attributeName, attributeDescription) {
     }
     
     if (errors.length) {
-      if (!hasOverridenError) {
-          model.trigger('error:'+attributeName, model, errors, options);
-      }
       return errors;
     } else {
       return false;
@@ -245,13 +239,20 @@ function createValidators(modelValidations) {
 
 var oldPerformValidation = Backbone.Model.prototype._performValidation;
 function newPerformValidation(attrs, options) {
-  var newAttrs = {
-    attributes : attrs,
-    options : options,
-    hasOverridenError : !!options.error
-  };
-  
-  return oldPerformValidation.call(this, newAttrs, options);
+  var errors = this.validate(attrs);
+
+  if (errors) {
+    if (options.error) {
+      options.error(this, errors, options);
+    } else {
+      this.trigger('error', this, errors, options);
+      _.each(errors, function(error, name) {
+        this.trigger('error:' + name, this, errors, options);
+      }, this);
+    }
+    return false;
+  }
+  return true;
 }
 
 // the following inheritance method is ripped straight from Backbone.

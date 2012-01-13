@@ -1,6 +1,26 @@
 $(document).ready(function(){
 
 module("general tests");
+test("it maintains the original validate interface", function() {
+  var ValidatingModel = Backbone.Model.extend({
+    validate: {
+      name: {
+        required: true
+      },
+      number: {
+        required: true
+      }
+    }
+  });
+
+  var vm = new ValidatingModel;
+
+  deepEqual(vm.validate({"hahah": 3}), {
+    name: ["required"],
+    number: ["required"]
+  });
+});
+
 test("set returns false when failing", function() {
   var TestModel = Backbone.Model.extend({
     validate : {
@@ -13,7 +33,7 @@ test("set returns false when failing", function() {
   var test = new TestModel;
 
   equals(test.set({}), false);
-  });
+});
 
 test("set triggers an error event on the model", function() {
   var TestModel = Backbone.Model.extend({
@@ -617,5 +637,6 @@ test("save options success", function() {
     }
   });
 });
+
 
 });
