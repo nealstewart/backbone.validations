@@ -358,7 +358,24 @@ test("works", function() {
   var m = new MinTestModel;
   equals(m.set({size: 2}), false);
   ok(m.set({size: 5}));
+});
+
+module("in validation");
+test("works", function() {
+  var InTestModel = Backbone.Model.extend({
+    validate : {
+      size : {
+        in : [
+          1, 2, 3
+        ]
+      }
+    } 
   });
+  
+  var m = new InTestModel;
+  equals(m.set({size: 5}), false);
+  ok(m.set({size: 1}));
+});
 
 module("max validation");
 test("works", function() {
