@@ -266,7 +266,7 @@ Backbone.Validations.Model = Backbone.Model.extend({
       if (!this.constructor.prototype._attributeValidators) {
         this.constructor.prototype._attributeValidators = createValidators(this.validate);
         this.constructor.prototype.validate = newValidate;
-        this.constructor.prototype._performValidation = newPerformValidation;
+        this.constructor.prototype._validate = newPerformValidation;
       }
     }
 
