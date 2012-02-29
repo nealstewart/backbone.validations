@@ -239,8 +239,8 @@ function createValidators(modelValidations) {
 
 var oldPerformValidation = Backbone.Model.prototype._performValidation;
 function newPerformValidation(attrs, options) {
+  if (options.silent || !this.validate) return true;
   var errors = this.validate(attrs);
-
   if (errors) {
     if (options.error) {
       options.error(this, errors, options);
@@ -266,7 +266,7 @@ Backbone.Validations.Model = Backbone.Model.extend({
       if (!this.constructor.prototype._attributeValidators) {
         this.constructor.prototype._attributeValidators = createValidators(this.validate);
         this.constructor.prototype.validate = newValidate;
-        this.constructor.prototype._performValidation = newPerformValidation;
+        this.constructor.prototype._validate = newPerformValidation;
       }
     }
 

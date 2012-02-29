@@ -32,7 +32,7 @@ test("set returns false when failing", function() {
 
   var test = new TestModel;
 
-  equals(test.set({}), false);
+  equal(test.set({}), false);
 });
 
 test("set triggers an error event on the model", function() {
@@ -108,8 +108,8 @@ test("providing a direct override prevents normal and named errors from being tr
     error: overrideCallback
   });
 
-  equals(false, normalCallbackCalled, "normal callback called");
-  equals(false, nameCallbackCalled, "name callback called");
+  equal(false, normalCallbackCalled, "normal callback called");
+  equal(false, nameCallbackCalled, "name callback called");
   ok(overrideCallbackCalled);
 });
 
@@ -216,9 +216,9 @@ test("doesn't set other values, when there is no current value, and no value is 
 
   var t = new TestModel;
 
-  equals(t.set({woo: "hoo"}), false);
+  equal(t.set({woo: "hoo"}), false);
 
-  equals(t.get('woo'), undefined);
+  equal(t.get('woo'), undefined);
 });
 
 
@@ -233,8 +233,8 @@ test("won't allow a value to be set to null, or blank", function() {
 
   var t = new TestModel;
 
-  equals(t.set({name: null}), false);
-  equals(t.set({name: ""}), false);
+  equal(t.set({name: null}), false);
+  equal(t.set({name: ""}), false);
 });
 
 module("custom attribute validator");
@@ -271,7 +271,7 @@ test("can cause an error", function() {
   });
   
   var t = new TestModel;
-  equals(t.set({name: "whatever"}), false);
+  equal(t.set({name: "whatever"}), false);
 });
 
 test("it's included in the errors", function() {
@@ -311,8 +311,8 @@ test("given a minimum length, it will error if given a string that is a smaller"
   });
 
   var t = new TestModel;
-  equals(t.set({name : "neal"}), t);
-  equals(t.set({name : "al"}), false);
+  equal(t.set({name : "neal"}), t);
+  equal(t.set({name : "al"}), false);
 });
 
 module("maxlength validator");
@@ -326,8 +326,8 @@ test("given a maximum length, it will error if given a string that is a larger",
   });
 
   var t = new TestModel;
-  equals(t.set({name : "neals"}), false);
-  equals(t.set({name : "al"}), t);
+  equal(t.set({name : "neals"}), false);
+  equal(t.set({name : "al"}), t);
 });
 
 module("pattern validation");
@@ -342,7 +342,7 @@ test("pattern /^test/", function() {
   
   var newTestModel = new PatternTestModel;
   ok(newTestModel.set({name:"test"}));
-  equals(newTestModel.set({name:"broken"}), false);
+  equal(newTestModel.set({name:"broken"}), false);
 });
 
 module("min validation");
@@ -356,7 +356,7 @@ test("works", function() {
   });
   
   var m = new MinTestModel;
-  equals(m.set({size: 2}), false);
+  equal(m.set({size: 2}), false);
   ok(m.set({size: 5}));
 });
 
@@ -373,7 +373,7 @@ test("works", function() {
   });
   
   var m = new InTestModel;
-  equals(m.set({size: 5}), false);
+  equal(m.set({size: 5}), false);
   ok(m.set({size: 1}));
 });
 
@@ -388,7 +388,7 @@ test("works", function() {
   });
   
   var m = new MaxTestModel;
-  equals(m.set({size: 5}), false);
+  equal(m.set({size: 5}), false);
   ok(m.set({size: 2}));
 });
 
@@ -409,7 +409,7 @@ test("valid colors", function() {
 
   var model = new ColorTestingModel;
   ok(model.set({name: 'white'}));
-  equals(model.set({name: 'yellow'}), false);
+  equal(model.set({name: 'yellow'}), false);
 });
 
 module("type validations");
@@ -423,7 +423,7 @@ test("email", function() {
   });
 
   var m = new EmailTestModel;
-  equals(m.set({email : "boogers"}), false);
+  equal(m.set({email : "boogers"}), false);
   ok(m.set({email : "neal@snot.ca"}));
 });
 
@@ -438,7 +438,7 @@ test("url", function() {
   });
 
   var m = new UrlTestModel;
-  equals(m.set({link : "boogers"}), false);
+  equal(m.set({link : "boogers"}), false);
   ok(m.set({link : "http://snot.ca"}));
   ok(m.set({link : "ftp://snot.ca"}));
 });
@@ -456,9 +456,9 @@ test("number", function() {
   var m = new NumberTestModel();
   ok(m.set({address : "33"}));
   ok(m.set({address : "33.333"}));
-  equals(m.set({address : "33.333f"}), false);
-  equals(m.set({address : "f33.333f"}), false);
-  equals(m.set({address : "."}), false);
+  equal(m.set({address : "33.333f"}), false);
+  equal(m.set({address : "f33.333f"}), false);
+  equal(m.set({address : "."}), false);
   ok(m.set({address : "089"}));
 });
 
@@ -477,7 +477,7 @@ test("different models shouldn't affect one another", function() {
 
   var nm = new NameModel();
   nm.set({name: "Neal"});
-  equals(nm.set({name: ""}), false);
+  equal(nm.set({name: ""}), false);
 
   var um = new UnnameModel();
   um.set({name: "Neal"});
@@ -505,12 +505,12 @@ test("a whole bunch!", function() {
   var vm = new ValidatingModel;
 
   ok(vm.set({name: "neal", age: 10}));
-  equals(vm.set({name: "neal", age: 201}), false);
-  equals(vm.set({name: "al", age: 10}), false);
-  equals(vm.set({name: "neal", age: -5}), false);
+  equal(vm.set({name: "neal", age: 201}), false);
+  equal(vm.set({name: "al", age: 10}), false);
+  equal(vm.set({name: "neal", age: -5}), false);
   ok(vm.set({name: "neal", age: "10"}));
-  equals(vm.set({name: "neal", age: "201"}), false);
-  equals(vm.set({name: "ne", age: 1}), false);
+  equal(vm.set({name: "neal", age: "201"}), false);
+  equal(vm.set({name: "ne", age: 1}), false);
 });
 
 module("The shape of validation errors");
@@ -564,7 +564,7 @@ test("proper shaped responses", function() {
     }, error);
   });
 
-  equals(vm.set({name: "neal", age: 201}), false);
+  equal(vm.set({name: "neal", age: 201}), false);
 });
 
 test("maxlength", function() {
@@ -592,7 +592,7 @@ test("maxlength", function() {
     }, error);
   });
   
-  equals(vm.set({name: "al", age: 10}), false);
+  equal(vm.set({name: "al", age: 10}), false);
 });
 
 test("pattern", function() {
@@ -620,7 +620,7 @@ test("pattern", function() {
     }, error);
   });
  
-  equals(vm.set({name: "a323", age: 10}), false);
+  equal(vm.set({name: "a323", age: 10}), false);
 });
 
 test("save options success", function() {
