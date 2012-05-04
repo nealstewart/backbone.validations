@@ -84,6 +84,18 @@ vm.bind('error:name', function(model, errs) {
 });
 ```
 
+### Bind with validated events
+
+The Backbone change event will not fire in cases where the same value is set on the attribute, but if you want to detect validation in these cases, use the "validated" event.
+
+```javascript
+var vm = new ValidatingModel;
+
+vm.bind('validated', function(model, attrs) {
+  // wherein attrs contains the validated attributes
+});
+```
+
 ### Define custom model validators
 
 ```javascript

@@ -252,6 +252,9 @@ function newPerformValidation(attrs, options) {
     }
     return false;
   }
+  if (attrs) {
+	  this.trigger('validated', this, attrs, options);
+  }
   return true;
 }
 

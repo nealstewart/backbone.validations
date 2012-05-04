@@ -77,6 +77,34 @@ test("set triggers an error event named after the attribute, on the model", func
   ok(errorCallbackCalled);
 });
 
+test("set triggers a validated event on the model", function() {
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      name : {
+        required : true
+      },
+	  email : {
+        type: "email"
+	  }
+    }
+  });
+
+  var test = new TestModel();
+  var errorCallbackCalled = false;
+
+  test.bind('error', function(model, error) {
+    ok(false);
+  });
+  
+  test.bind('validated', function(model, attrs) {
+	deepEqual(attrs, {name:"test", email:"test@example.com"});
+	errorCallbackCalled = true;
+  });
+
+  test.set({name:"test", email:"test@example.com"});
+
+  ok(errorCallbackCalled);
+});
 
 test("providing a direct override prevents normal and named errors from being triggered", function() {
   var nameOfAttribute = "name";
@@ -654,6 +682,7 @@ test("save options success", function() {
     }
   });
 });
+
 
 
 });
