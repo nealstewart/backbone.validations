@@ -131,6 +131,26 @@ var CustomGlobalUsingValidationDudeModel = Backbone.Model.extend({
 });
 ```
 
+### Integrates with [Backbone-Nested](http://afeld.github.com/backbone-nested/)
+
+Backbone-Nested allows you to specify nested attributes with 1-1 and 1-N relationships. You can specify validation 
+rules using dot notation and empty square brackets.
+
+```javascript
+var ValidatingModel = Backbone.Model.extend({
+  validate : {
+    "person.name" : {
+      pattern   : /^[a-zA-Z]+$/,
+      minlength : 3,
+      maxlength : 100
+    },
+	"person.addresses[].city" : {
+	  maxlength : 100
+	}
+  }
+});
+```
+
 Give 'er a go!
 
 ### OH AND THERE'S A NOCONFLICT

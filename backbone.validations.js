@@ -112,7 +112,6 @@ Backbone.Validations.addValidator = function(name, validator) {
   customValidators[name] = validator;
 };
 
-
 /*
   The newValidate method overrides validate in Backbone.Model.
   It has the same interface as the validate function which you
@@ -129,21 +128,86 @@ Backbone.Validations.addValidator = function(name, validator) {
 function newValidate(attributes) {
   var errorsForAttribute,
       errorHasOccured,
-      errors = {};
-
-  for (var attrName in this._attributeValidators) {
-    var valueToSet = attributes[attrName];
-    var validateAttribute = this._attributeValidators[attrName];
-    if (validateAttribute)  {
-      errorsForAttribute = validateAttribute(this, valueToSet);
-    }
-    if (errorsForAttribute) {
-      errorHasOccured = true;
-      errors[attrName] = errorsForAttribute;
-    }
+      errors = {},
+	  valueToSet;
+  
+  // Copy _attributeValidators into another array, which will grow as nested collections are inflated
+  var attrNames = _.keys(this._attributeValidators);
+  
+  for (var i = 0; i < attrNames.length; i++) {
+	// Handle names for nested attributes	
+	var attrName = attrNames[i];
+	var attrNameFragments = attrName.split(".");
+	
+	for (var j = 0; j < attrNameFragments.length; j++) {
+		var element = attrNameFragments[j];
+		var attrNameTypeEnum = {
+			NORMAL : 0,
+			ARRAY : 1,
+			ARRAY_ITEM : 2
+		}
+		var attrNameType = attrNameTypeEnum.NORMAL;
+		var arrayIndex = -1;
+		
+		// Determine attribute name fragment type: (normal, uninflated array [], or inflated array item [n])
+		element = element.replace(/\[(\d*)\]/, function(match, p1) {
+			if (match === "[]") {
+				attrNameType = attrNameTypeEnum.ARRAY;
+			} else {
+				attrNameType = attrNameTypeEnum.ARRAY_ITEM;
+				arrayIndex = p1;
+			}
+			return "";
+		});
+		
+		// Advance the placeholder in the JSON tree to reflect the current attribute name fragment
+		if (j == 0) {
+			if (attrNameType === attrNameTypeEnum.ARRAY_ITEM) {
+				valueToSet = attributes[element][arrayIndex];
+			} else valueToSet = attributes[element];
+		} else {
+			if (attrNameType === attrNameTypeEnum.ARRAY_ITEM) {
+				valueToSet = valueToSet[element][arrayIndex];
+			} else valueToSet = valueToSet[element];
+		}
+			
+		// If this is an uninflated array, inflate it by appending array item entries to the end of attrNames
+		if (attrNameType === attrNameTypeEnum.ARRAY) {
+		  for (var k = 0; k < valueToSet.length; k++) {
+			// Copy attrName into var, find the position of the first [] in the attrName, replace with [j], and push to attrNames
+			var nameToPush = attrName.replace("[]", "[" + k + "]");
+			attrNames.push(nameToPush);
+		  }
+		  break;
+		} 
+	}
+	
+	// Skip the attrNames that are arrays (empty []), but do process the inflated array items ([0], [1], etc.)
+	if (attrNameType !== attrNameTypeEnum.ARRAY) {
+		var errorsForAttribute = "";
+		
+		attrName = attrName.replace(/\[\d+\]/g, "[]");
+		var validateAttribute = this._attributeValidators[attrName];
+		if (validateAttribute)  {
+		  errorsForAttribute = validateAttribute(this, valueToSet);
+		}
+		if (errorsForAttribute) {
+		  errorHasOccured = true;
+		  errors[attrName] = errorsForAttribute;
+		}
+	}
+	
   }
 
   return errorHasOccured ? errors : false;
+}
+
+/*
+ Inner validation function called recursively by newValidate while traversing
+ nested model attribute tree
+*/
+function validateInner(valueToSet, attrName, errorHasOccured, errors) {
+	
 }
 
 function createMinValidator(attributeName, minimumValue) {
@@ -269,6 +333,10 @@ Backbone.Validations.Model = Backbone.Model.extend({
       if (!this.constructor.prototype._attributeValidators) {
         this.constructor.prototype._attributeValidators = createValidators(this.validate);
         this.constructor.prototype.validate = newValidate;
+		
+		// Have to add this to the model prototype to support recursive function call by newValidate
+		this.constructor.prototype._validateInner = validateInner;
+		
         this.constructor.prototype._validate = newPerformValidation;
       }
     }
