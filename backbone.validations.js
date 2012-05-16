@@ -186,8 +186,8 @@ function newValidate(attributes) {
 	if (attrNameType !== attrNameTypeEnum.ARRAY) {
 		var errorsForAttribute = "";
 		
-		attrName = attrName.replace(/\[\d+\]/g, "[]");
-		var validateAttribute = this._attributeValidators[attrName];
+		var attrValidatorName = attrName.replace(/\[\d+\]/g, "[]");
+		var validateAttribute = this._attributeValidators[attrValidatorName];
 		if (validateAttribute)  {
 		  errorsForAttribute = validateAttribute(this, valueToSet);
 		}
@@ -200,14 +200,6 @@ function newValidate(attributes) {
   }
 
   return errorHasOccured ? errors : false;
-}
-
-/*
- Inner validation function called recursively by newValidate while traversing
- nested model attribute tree
-*/
-function validateInner(valueToSet, attrName, errorHasOccured, errors) {
-	
 }
 
 function createMinValidator(attributeName, minimumValue) {
@@ -333,11 +325,7 @@ Backbone.Validations.Model = Backbone.Model.extend({
       if (!this.constructor.prototype._attributeValidators) {
         this.constructor.prototype._attributeValidators = createValidators(this.validate);
         this.constructor.prototype.validate = newValidate;
-		
-		// Have to add this to the model prototype to support recursive function call by newValidate
-		this.constructor.prototype._validateInner = validateInner;
-		
-        this.constructor.prototype._validate = newPerformValidation;
+		this.constructor.prototype._validate = newPerformValidation;
       }
     }
 

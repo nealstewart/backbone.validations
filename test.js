@@ -80,30 +80,25 @@ test("set triggers an error event named after the attribute, on the model", func
 test("set triggers a validated event on the model", function() {
   var TestModel = Backbone.Model.extend({
     validate : {
-      name : {
-        required : true
+      firstName : {
+        pattern   : /^[a-zA-Z]+$/
       },
-	  email : {
-        type: "email"
+	  lastName : {
+        pattern   : /^[a-zA-Z]+$/
 	  }
     }
   });
 
-  var test = new TestModel();
-  var errorCallbackCalled = false;
-
-  test.bind('error', function(model, error) {
-    ok(false);
+  var test = new TestModel({
+    firstName : "John",
+	lastName : "Doe"
   });
   
   test.bind('validated', function(model, attrs) {
-	deepEqual(attrs, {name:"test", email:"test@example.com"});
-	errorCallbackCalled = true;
+	deepEqual(attrs, {firstName: "Jim"});
   });
 
-  test.set({name:"test", email:"test@example.com"});
-
-  ok(errorCallbackCalled);
+  test.set({firstName:"Jim"});
 });
 
 test("providing a direct override prevents normal and named errors from being triggered", function() {

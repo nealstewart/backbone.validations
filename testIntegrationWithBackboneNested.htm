@@ -189,7 +189,7 @@ $(document).ready(function(){
 		// Create error binding for validation error
 		this.nvm.bind('error', function(model, errors) {
 			errorCallbackCalled = true;
-			deepEqual(errors, {"firstLevelArray[].firstLevelArrObjAttrB":["minlength"]});
+			deepEqual(errors, {"firstLevelArray[1].firstLevelArrObjAttrB":["minlength"]});
 		});
 		
 		// Change a nested field
@@ -208,7 +208,7 @@ $(document).ready(function(){
 		
 		this.nvm.bind('error', function(model, errors) {
 			errorCallbackCalled = true;
-			deepEqual(errors, {"firstLevelChild.secondLevelArray[].secondLevelArrObjAttrA":["pattern"]});
+			deepEqual(errors, {"firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA":["pattern"]});
 		});
 		
 		this.nvm.set({"firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA" : "$$$"});
@@ -233,7 +233,7 @@ $(document).ready(function(){
 		
 		this.nvm.bind('error', function(model, errors) {
 			errorCallbackCalled = true;
-			deepEqual(errors, {"firstLevelArray[].arrOfArrs[].arrOfArrsObjAttrB":["pattern"]});
+			deepEqual(errors, {"firstLevelArray[1].arrOfArrs[1].arrOfArrsObjAttrB":["pattern"]});
 		});
 		
 		this.nvm.set({"firstLevelArray[1].arrOfArrs[1].arrOfArrsObjAttrB" : "$$$"});
@@ -256,9 +256,9 @@ $(document).ready(function(){
 		
 		var errorCallbackCalled = false;
 		
-		this.nvm.bind('error:firstLevelChild.secondLevelArray[].secondLevelArrObjAttrA', function(model, errors) {
+		this.nvm.bind('error:firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA', function(model, errors) {
 			errorCallbackCalled = true;
-			deepEqual(errors, {"firstLevelChild.secondLevelArray[].secondLevelArrObjAttrA":["pattern"]});
+			deepEqual(errors, {"firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA":["pattern"]});
 		});
 		
 		this.nvm.set({"firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA" : "$$$" });
