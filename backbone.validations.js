@@ -125,81 +125,116 @@ Backbone.Validations.addValidator = function(name, validator) {
     }
 
   */
-function newValidate(attributes) {
-  var errorsForAttribute,
-      errorHasOccured,
-      errors = {},
-	  valueToSet;
-  
-  // Copy _attributeValidators into another array, which will grow as nested collections are inflated
-  var attrNames = _.keys(this._attributeValidators);
-  
-  for (var i = 0; i < attrNames.length; i++) {
-	// Handle names for nested attributes	
-	var attrName = attrNames[i];
-	var attrNameFragments = attrName.split(".");
-	
-	for (var j = 0; j < attrNameFragments.length; j++) {
-		var element = attrNameFragments[j];
-		var attrNameTypeEnum = {
-			NORMAL : 0,
-			ARRAY : 1,
-			ARRAY_ITEM : 2
-		}
-		var attrNameType = attrNameTypeEnum.NORMAL;
-		var arrayIndex = -1;
+function newValidate(attributes, chgs) {
+	  var errorsForAttribute,
+	      errorHasOccured,
+	      errors = {},
+		  valueToSet;
+	  
+	  // Copy _attributeValidators into another array, which will grow as nested collections are inflated
+	  var attrNames = _.keys(this._attributeValidators);
+	  
+	  var uninflatedChanges = {};
+	  
+	  for(var a in chgs){
+		  var value = chgs[a];
+		  a = a.replace(/\[\d+\]/g, "[]");
+		  uninflatedChanges[a] = value; 
+	  }
+	  
+	  for (var i = 0; i < attrNames.length; i++) {
+		// Handle names for nested attributes	
+		var attrName = attrNames[i];
 		
-		// Determine attribute name fragment type: (normal, uninflated array [], or inflated array item [n])
-		element = element.replace(/\[(\d*)\]/, function(match, p1) {
-			if (match === "[]") {
-				attrNameType = attrNameTypeEnum.ARRAY;
-			} else {
-				attrNameType = attrNameTypeEnum.ARRAY_ITEM;
-				arrayIndex = p1;
-			}
-			return "";
-		});
-		
-		// Advance the placeholder in the JSON tree to reflect the current attribute name fragment
-		if (j == 0) {
-			if (attrNameType === attrNameTypeEnum.ARRAY_ITEM) {
-				valueToSet = attributes[element][arrayIndex];
-			} else valueToSet = attributes[element];
-		} else {
-			if (attrNameType === attrNameTypeEnum.ARRAY_ITEM) {
-				valueToSet = valueToSet[element][arrayIndex];
-			} else valueToSet = valueToSet[element];
-		}
+		// if no changes have been passed, do nothing different than before.
+		if(chgs === undefined){
+			var attrNameFragments = attrName.split(".");
 			
-		// If this is an uninflated array, inflate it by appending array item entries to the end of attrNames
-		if (attrNameType === attrNameTypeEnum.ARRAY) {
-		  for (var k = 0; k < valueToSet.length; k++) {
-			// Copy attrName into var, find the position of the first [] in the attrName, replace with [j], and push to attrNames
-			var nameToPush = attrName.replace("[]", "[" + k + "]");
-			attrNames.push(nameToPush);
-		  }
-		  break;
-		} 
-	}
-	
-	// Skip the attrNames that are arrays (empty []), but do process the inflated array items ([0], [1], etc.)
-	if (attrNameType !== attrNameTypeEnum.ARRAY) {
-		var errorsForAttribute = "";
-		
-		var attrValidatorName = attrName.replace(/\[\d+\]/g, "[]");
-		var validateAttribute = this._attributeValidators[attrValidatorName];
-		if (validateAttribute)  {
-		  errorsForAttribute = validateAttribute(this, valueToSet);
-		}
-		if (errorsForAttribute) {
-		  errorHasOccured = true;
-		  errors[attrName] = errorsForAttribute;
-		}
-	}
-	
-  }
+			for (var j = 0; j < attrNameFragments.length; j++) {
+				var element = attrNameFragments[j];
+				var attrNameTypeEnum = {
+					NORMAL : 0,
+					ARRAY : 1,
+					ARRAY_ITEM : 2
+				}
+				var attrNameType = attrNameTypeEnum.NORMAL;
+				var arrayIndex = -1;
+				
+				// Determine attribute name fragment type: (normal, uninflated array [], or inflated array item [n])
+				element = element.replace(/\[(\d*)\]/, function(match, p1) {
+					if (match === "[]") {
+						attrNameType = attrNameTypeEnum.ARRAY;
+					} else {
+						attrNameType = attrNameTypeEnum.ARRAY_ITEM;
+						arrayIndex = p1;
+					}
+					return "";
+				});
+				
+				// Advance the placeholder in the JSON tree to reflect the current attribute name fragment
+				if (j == 0) {
+					if (attrNameType === attrNameTypeEnum.ARRAY_ITEM) {
+						valueToSet = attributes[element][arrayIndex];
+					} else valueToSet = attributes[element];
+				} else {
+					if (attrNameType === attrNameTypeEnum.ARRAY_ITEM) {
+						valueToSet = valueToSet[element][arrayIndex];
+					} else valueToSet = valueToSet[element];
+				}
+					
+				// If this is an uninflated array, inflate it by appending array item entries to the end of attrNames
+				if (attrNameType === attrNameTypeEnum.ARRAY) {
+				  for (var k = 0; k < valueToSet.length; k++) {
+					// Copy attrName into var, find the position of the first [] in the attrName, replace with [j], and push to attrNames
+					var nameToPush = attrName.replace("[]", "[" + k + "]");
+					attrNames.push(nameToPush);
+				  }
+				  break;
+				} 
+			}
 
-  return errorHasOccured ? errors : false;
+			// Skip the attrNames that are arrays (empty []), but do process the inflated array items ([0], [1], etc.)
+			if (attrNameType !== attrNameTypeEnum.ARRAY) {
+				var errorsForAttribute = "";
+				
+				var attrValidatorName = attrName.replace(/\[\d+\]/g, "[]");
+				var validateAttribute = this._attributeValidators[attrValidatorName];
+				if (validateAttribute)  {
+				  errorsForAttribute = validateAttribute(this, valueToSet);
+				}
+				if (errorsForAttribute) {
+				  errorHasOccured = true;
+				  errors[attrName] = errorsForAttribute;
+				}
+			}
+			
+		// if changes have been passed in we can skip the blanket inflation of all arrays and just
+	    // and just validate the changed key and value.
+		} else if (uninflatedChanges[attrName]) {
+
+			  for(var c in chgs){
+				  
+				  var uninflatedC = c.replace(/\[\d+\]/g, "[]");
+				  if(uninflatedC === attrName){
+					  var errorsForAttribute = "";
+					  var valueToSet = chgs[c];
+					  var validateAttribute = this._attributeValidators[attrName];
+					  if (validateAttribute)  {
+						  errorsForAttribute = validateAttribute(this, valueToSet);
+					  }
+					  if (errorsForAttribute) {
+						  errorHasOccured = true;
+						  errors[c] = errorsForAttribute;
+					  }
+				  }
+
+			  }
+
+		  }
+
+		
+	  }   
+	return errorHasOccured ? errors : false;
 }
 
 function createMinValidator(attributeName, minimumValue) {
@@ -294,9 +329,19 @@ function createValidators(modelValidations) {
 }
 
 var oldPerformValidation = Backbone.Model.prototype._performValidation;
-function newPerformValidation(attrs, options) {
+function performNestedValidation(attrs, options, chgs) {
+
   if (options.silent || !this.validate) return true;
-  var errors = this.validate(attrs);
+  
+  var errors = null;
+  
+  // if no changes have been made, there's no reason to validate
+  if(chgs !== undefined && _.isEmpty(chgs)){
+	  errors = this.validate(attrs);
+  }else if(chgs){
+	  errors = this.validate(attrs,chgs);
+  }
+  
   if (errors) {
     if (options.error) {
       options.error(this, errors, options);
@@ -325,7 +370,7 @@ Backbone.Validations.Model = Backbone.Model.extend({
       if (!this.constructor.prototype._attributeValidators) {
         this.constructor.prototype._attributeValidators = createValidators(this.validate);
         this.constructor.prototype.validate = newValidate;
-		this.constructor.prototype._validate = newPerformValidation;
+		this.constructor.prototype._validate = performNestedValidation;
       }
     }
 
