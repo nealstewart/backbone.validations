@@ -208,8 +208,8 @@ function newValidate(attributes, chgs) {
 				}
 			}
 			
-		// if changes have been passed in we can skip the blanket inflation of all arrays and just
-	    // and just validate the changed key and value.
+		// if changes have been passed in we can skip the blanket inflation of all arrays
+	    	// and just validate the changed key and value.
 		} else if (uninflatedChanges[attrName]) {
 
 			  for(var c in chgs){
