@@ -84,6 +84,18 @@ vm.bind('error:name', function(model, errs) {
 });
 ```
 
+### Bind with validated events
+
+The Backbone change event will not fire in cases where the same value is set on the attribute, but if you want to detect validation in these cases, use the "validated" event.
+
+```javascript
+var vm = new ValidatingModel;
+
+vm.bind('validated', function(model, attrs) {
+  // wherein attrs contains the validated attributes
+});
+```
+
 ### Define custom model validators
 
 ```javascript
@@ -116,6 +128,27 @@ var CustomGlobalUsingValidationDudeModel = Backbone.Model.extend({
       awesomeValidator: "whatever"
     }
   } 
+});
+```
+
+### Integrates with [Backbone-Nested](http://afeld.github.com/backbone-nested/)
+
+Backbone-Nested allows you to specify nested attributes with 1-1 and 1-N relationships. You can define validations 
+for nested attributes using dot notation and empty square brackets. You will need to import backbone-nested separately
+to use this. See testIntegrationWithBackboneNested.htm for more examples.
+
+```javascript
+var ValidatingModel = Backbone.Model.extend({
+  validate : {
+    "person.name" : {
+      pattern   : /^[a-zA-Z]+$/,
+      minlength : 3,
+      maxlength : 100
+    },
+	"person.addresses[].city" : {
+	  maxlength : 100
+	}
+  }
 });
 ```
 

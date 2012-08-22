@@ -1,0 +1,316 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <meta name="generator" content="HTML Tidy for Windows (vers 14 February 2006), see www.w3.org">
+        <script src="http://code.jquery.com/jquery-latest.js" type="text/javascript"></script>
+        <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen">
+        <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
+		<script type="text/javascript" src="http://documentcloud.github.com/underscore/underscore.js"></script>
+		<script type="text/javascript" src="http://documentcloud.github.com/backbone/backbone.js"></script>
+		<script type="text/javascript" src="backbone.validations.js"></script>
+		<script type="text/javascript" src="https://raw.github.com/afeld/backbone-nested/master/backbone-nested.js"></script>
+ 
+ <script type="text/javascript">
+$(document).ready(function(){
+
+	module("Validation", {
+			
+		setup: function() {
+			
+			// Top level parent model with nested stuff
+			this.NestedValidatingModel = Backbone.NestedModel.extend({
+				validate : {
+					parentAttrA : {
+						minlength : 16
+					},
+					parentAttrB : {
+						minlength : 16
+					},
+					"firstLevelChild.firstLevelChildAttrA" : {
+						minlength : 25
+					},
+					"firstLevelArray[].firstLevelArrObjAttrA" : {
+						minlength : 27
+					},
+					"firstLevelArray[].firstLevelArrObjAttrB" : {
+						minlength : 27
+					},
+					"firstLevelChild.secondLevelArray[].secondLevelArrObjAttrA" : {
+						pattern   : /^[a-zA-Z0-9]+$/
+					},
+					"firstLevelArray[].arrOfArrs[].arrOfArrsObjAttrB" : {
+						pattern   : /^[a-zA-Z0-9]+$/
+					}
+				}
+			});
+			this.nvm = new this.NestedValidatingModel({
+				parentAttrA : "parentAttrAValue",
+				parentAttrB : "parentAttrBValue",
+				firstLevelChild : {
+					firstLevelChildAttrA : "firstLevelChildAttrAValue",
+					firstLevelChildAttrB : "firstLevelChildAttrBValue",
+					secondLevelArray : [
+						{
+							secondLevelArrObjAttrA : "secondLevelArrObj0AttrAValue",
+							secondLevelArrObjAttrB : "secondLevelArrObj0AttrBValue"
+						},
+						{
+							secondLevelArrObjAttrA : "secondLevelArrObj1AttrAValue",
+							secondLevelArrObjAttrB : "secondLevelArrObj1AttrBValue"
+						},
+						{	
+							secondLevelArrObjAttrA : "secondLevelArrObj2AttrAValue",
+							secondLevelArrObjAttrB : "secondLevelArrObj2AttrBValue"
+						}
+					]
+				},
+				firstLevelArray : [
+					{
+						firstLevelArrObjAttrA : "firstLevelArrObj0AttrAValue",
+						firstLevelArrObjAttrB : "firstLevelArrObj0AttrBValue",
+						arrOfArrs : [
+							{
+								arrOfArrsObjAttrA : "arrOfArr0ObjAttrAVal",
+								arrOfArrsObjAttrB : "arrOfArr0ObjAttrBVal"
+							},
+							{
+								arrOfArrsObjAttrA : "arrOfArr0ObjAttrAVal",
+								arrOfArrsObjAttrB : "arrOfArr0ObjAttrBVal"
+							},
+							{
+								arrOfArrsObjAttrA : "arrOfArr0ObjAttrAVal",
+								arrOfArrsObjAttrB : "arrOfArr0ObjAttrBVal"
+							}
+						]
+					},
+					{
+						firstLevelArrObjAttrA : "firstLevelArrObj1AttrAValue",
+						firstLevelArrObjAttrB : "firstLevelArrObj1AttrBValue",
+						arrOfArrs : [
+							{
+								arrOfArrsObjAttrA : "arrOfArr1ObjAttrAVal",
+								arrOfArrsObjAttrB : "arrOfArr1ObjAttrBVal"
+							},
+							{
+								arrOfArrsObjAttrA : "arrOfArr1ObjAttrAVal",
+								arrOfArrsObjAttrB : "arrOfArr1ObjAttrBVal"
+							},
+							{
+								arrOfArrsObjAttrA : "arrOfArr1ObjAttrAVal",
+								arrOfArrsObjAttrB : "arrOfArr1ObjAttrBVal"
+							}
+						]
+					},
+					{
+						firstLevelArrObjAttrA : "firstLevelArrObj2AttrAValue",
+						firstLevelArrObjAttrB : "firstLevelArrObj2AttrBValue",
+						arrOfArrs : [
+							{
+								arrOfArrsObjAttrA : "arrOfArr2ObjAttrAVal",
+								arrOfArrsObjAttrB : "arrOfArr2ObjAttrBVal"
+							},
+							{
+								arrOfArrsObjAttrA : "arrOfArr2ObjAttrAVal",
+								arrOfArrsObjAttrB : "arrOfArr2ObjAttrBVal"
+							},
+							{
+								arrOfArrsObjAttrA : "arrOfArr2ObjAttrAVal",
+								arrOfArrsObjAttrB : "arrOfArr2ObjAttrBVal"
+							}
+						]
+					}
+				]
+			});
+			
+			// Top level parent view
+			this.ParentBBView = Backbone.View.extend({
+				el : $("#qunit-fixture"),
+				template : _.template($('#parentTemplate').html()),
+				initialize : function() {
+					this.$el.empty();
+					this.$el.append(this.template(this.model.toJSON()));
+				},
+				model : this.nvm
+			});
+			this.parentBBView = new this.ParentBBView();
+			
+		},
+		
+		teardown: function() {
+		
+		}
+	
+	});
+	
+	test("simple validation", function() {
+		var errorCallbackCalled = false;
+		
+		// Create error binding for validation error
+		this.nvm.bind('error', function(model, errors) {
+			errorCallbackCalled = true;
+			deepEqual(errors, {"parentAttrA":["minlength"]});
+		});
+		
+		// Change a top level field
+		this.nvm.set({parentAttrA:"tooShortPAttrA"});
+		
+		ok(errorCallbackCalled);
+		
+		// Model should not have been updated
+		notEqual( this.nvm.get("parentAttrA"), "tooShortPAttrA", "Parent model parentAttrA not updated due to validation" );
+		
+	});
+
+	test("nested validation", function() {
+		
+		var errorCallbackCalled = false;
+		
+		// Create error binding for validation error
+		this.nvm.bind('error', function(model, errors) {
+			errorCallbackCalled = true;
+			deepEqual(errors, {"firstLevelChild.firstLevelChildAttrA":["minlength"]});
+		});
+		
+		// Change a nested field
+		this.nvm.set({"firstLevelChild.firstLevelChildAttrA": "tooShortFLCAttrAVal"});
+		
+		ok(errorCallbackCalled);
+		
+		// Model should not have been updated
+		notEqual( this.nvm.get("firstLevelChild.firstLevelChildAttrA"), "tooShortFLCAttrAVal", "Child attribute not updated due to validation" );
+		
+	});
+	
+	test("nested array validation", function() {
+		
+		var errorCallbackCalled = false;
+		
+		// Create error binding for validation error
+		this.nvm.bind('error', function(model, errors) {
+			errorCallbackCalled = true;
+			deepEqual(errors, {"firstLevelArray[1].firstLevelArrObjAttrB":["minlength"]});
+		});
+		
+		// Change a nested field
+		this.nvm.set({"firstLevelArray[1].firstLevelArrObjAttrB" : "tooShortFLArrO1AttrBValue"});
+		
+		ok(errorCallbackCalled);
+		
+		// Model should not have been updated
+		notEqual( this.nvm.get("firstLevelArray[1].firstLevelArrObjAttrB"), "tooShortFLArrO1AttrBValue", "Nested array attribute not updated due to validation" );
+		
+	});
+	
+	test("second-level nested array validation", function() {
+		
+		var errorCallbackCalled = false;
+		
+		this.nvm.bind('error', function(model, errors) {
+			errorCallbackCalled = true;
+			deepEqual(errors, {"firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA":["pattern"]});
+		});
+		
+		this.nvm.set({"firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA" : "$$$"});
+		
+		ok(errorCallbackCalled);
+		
+		notEqual( this.nvm.get("firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA"), "$$$", "Second-level nested array attribute not updated due to validation" );
+		
+		errorCallbackCalled = false;
+		
+		this.nvm.set({"firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA" : "valid"});
+		
+		ok(!errorCallbackCalled);
+		
+		equal( this.nvm.get("firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA"), "valid", "Second-level nested array attribute updated due to validation passing" );
+		
+	});
+	
+	test("array of array validation", function() {
+		
+		var errorCallbackCalled = false;
+		
+		this.nvm.bind('error', function(model, errors) {
+			errorCallbackCalled = true;
+			deepEqual(errors, {"firstLevelArray[1].arrOfArrs[1].arrOfArrsObjAttrB":["pattern"]});
+		});
+		
+		this.nvm.set({"firstLevelArray[1].arrOfArrs[1].arrOfArrsObjAttrB" : "$$$"});
+		
+		ok(errorCallbackCalled);
+		
+		notEqual( this.nvm.get("firstLevelArray[1].arrOfArrs[1].arrOfArrsObjAttrB"), "$$$", "Array of array attribute not updated due to validation" );
+		
+		errorCallbackCalled = false;
+		
+		this.nvm.set({"firstLevelArray[1].arrOfArrs[1].arrOfArrsObjAttrB" : "valid"});
+		
+		ok(!errorCallbackCalled);
+		
+		equal( this.nvm.get("firstLevelArray[1].arrOfArrs[1].arrOfArrsObjAttrB"), "valid", "Array of array attribute updated due to validation passing" );
+		
+	});
+	
+	test("triggers error event named after nested attribute", function() {
+		
+		var errorCallbackCalled = false;
+		
+		this.nvm.bind('error:firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA', function(model, errors) {
+			errorCallbackCalled = true;
+			deepEqual(errors, {"firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA":["pattern"]});
+		});
+		
+		this.nvm.set({"firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA" : "$$$" });
+		
+		ok(errorCallbackCalled);
+	});
+});
+ </script>
+ 
+    <title></title>
+    </head>
+    <body>
+        <h1 id="qunit-header">
+            Backbone.Validations Integration Test with Backbone-Nested
+        </h1>
+        <h2 id="qunit-banner"></h2>
+        <div id="qunit-testrunner-toolbar"></div>
+        <h2 id="qunit-userAgent"></h2>
+        <ol id="qunit-tests"></ol>
+        
+		
+		<!-- THE FIXTURE -->
+		<div id="qunit-fixture">
+		   
+		   <!-- PARENT TEMPLATE -->
+		   <script type="text/template" id="parentTemplate">
+			   <input name="parentAttrA" type="text" />
+			   <span id="parentAttrAError" class="error"></span>
+			   
+			   <input name="parentAttrB" type="text" />
+			   <span id="parentAttrBError" class="error"></span>
+			   
+				<div>
+					<input name="firstLevelChild.firstLevelChildAttrA" type="text" />
+				</div>
+			   
+				<div>
+					<input name="firstLevelArray[1].firstLevelArrObjAttrB" type="text" />
+				</div>
+			   
+				<div>
+					<input name="firstLevelChild.secondLevelArray[2].secondLevelArrObjAttrA" type="text" />
+				</div>
+				
+				<div>
+					<input name="firstLevelArray[1].arrOfArrs[1].arrOfArrsObjAttrB" type="text" />
+				</div>
+		   </script>
+		   
+		   
+		</div>
+		
+		
+    </body>
+</html>
