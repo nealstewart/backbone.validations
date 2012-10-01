@@ -29,10 +29,7 @@ var validators = {
   },
 
   "required" : function(attributeName, model, valueToSet) {
-    var currentValue = model.get(attributeName);
-    var isNotAlreadySet = _.isUndefined(currentValue);
-    var isNotBeingSet = _.isUndefined(valueToSet);
-    if (_.isNull(valueToSet) || valueToSet === "" || (isNotBeingSet && isNotAlreadySet)) {
+    if (_.isNull(valueToSet) || _.isUndefined(valueToSet) || valueToSet === "") {
       return "required";
     } else {
       return false;
