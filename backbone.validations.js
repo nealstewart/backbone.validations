@@ -62,6 +62,11 @@ var validators = {
   "number" : function(type, attributeName, model, valueToSet) {
     return isNaN(valueToSet) ? 'number' : undefined;
   },
+  
+  "digits": function (type, attributeName, model, valueToSet) {
+    var isBeingSet = !_.isUndefined(valueToSet);
+    return (!/^\d+$/.test(valueToSet) && isBeingSet) ? 'digits' : undefined;
+  },
 
   "pattern" : function(pattern, attributeName, model, valueToSet) {
     if (_.isString(valueToSet)) {
