@@ -462,6 +462,25 @@ test("number", function() {
   ok(m.set({address : "089"}));
 });
 
+test("digits", function() {
+  var NumberTestModel = Backbone.Model.extend({
+    validate : {
+      myNumber : {
+        type : "digits"
+      }
+    }
+  });
+
+  var m = new NumberTestModel();
+  ok(m.set({myNumber : "123"}));
+  equal(m.set({myNumber : "33.333f"}), false);
+  equal(m.set({myNumber : "f33.333f"}), false);
+  equal(m.set({myNumber : "-123"}), false);
+  equal(m.set({myNumber : "."}), false);
+  equal(m.set({myNumber : "abc"}), false);
+  ok(m.set({myNumber : "089"}));
+});
+
 module("test for overlaps");
 test("different models shouldn't affect one another", function() {
   var NameModel = Backbone.Model.extend({
