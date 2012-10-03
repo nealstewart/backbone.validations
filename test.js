@@ -234,6 +234,7 @@ test("won't allow a value to be set to null, or blank", function() {
   var t = new TestModel;
 
   equal(t.set({name: null}), false);
+  equal(t.set({name: undefined}), false);
   equal(t.set({name: ""}), false);
 });
 
@@ -567,7 +568,7 @@ test("proper shaped responses", function() {
   equal(vm.set({name: "neal", age: 201}), false);
 });
 
-test("maxlength", function() {
+test("minlength", function() {
   var ValidatingModel = Backbone.Model.extend({
     validate : {
       name : {
