@@ -20,6 +20,15 @@
 
 
 (function(Backbone) {
+
+// Require Underscore and Backbone if there's a `require` function.
+// This makes `backbone.validations` work on the server or when using
+// `browserify`.
+if (typeof require !== 'undefined') {
+  _ = require('underscore');
+  Backbone = require('backbone');
+}
+
 // Premade Validators
 Backbone.Validations = {};
 
@@ -285,4 +294,4 @@ Backbone.Validations.Model.noConflict =  function() {
   Backbone.Model = oldModel;
 };
 
-}(Backbone));
+}(typeof Backbone === 'undefined' ? null : Backbone));
