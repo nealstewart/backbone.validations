@@ -37,8 +37,8 @@ var validators = {
     return model[methodName](attributeName, valueToSet);
   },
 
-  "required" : function(attributeName, model, valueToSet) {
-    if (_.isNull(valueToSet) || _.isUndefined(valueToSet) || valueToSet === "") {
+  "required" : function(isRequired, attributeName, model, valueToSet) {
+    if (isRequired && (_.isNull(valueToSet) || _.isUndefined(valueToSet) || valueToSet === "")) {
       return "required";
     } else {
       return false;
@@ -68,7 +68,19 @@ var validators = {
   "number" : function(type, attributeName, model, valueToSet) {
     return isNaN(valueToSet) ? 'number' : undefined;
   },
-  
+
+  "Array": function(type, attributeName, model, valueToSet) {
+    return _.isArray(valueToSet) ? undefined : 'Array';
+  },
+
+  "Boolean": function(type, attributeName, model, valueToSet) {
+    return _.isBoolean(valueToSet) ? undefined : 'Boolean';
+  },
+
+  "String": function(type, attributeName, model, valueToSet) {
+    return _.isString(valueToSet) ? undefined : 'String';
+  },
+
   "digits": function (type, attributeName, model, valueToSet) {
     var isBeingSet = !_.isUndefined(valueToSet);
     return (!/^\d+$/.test(valueToSet) && isBeingSet) ? 'digits' : undefined;
@@ -106,6 +118,12 @@ var validators = {
     if (_.isString(valueToSet)) {
       if (valueToSet.length > maxlength) { return "maxlength"; }
     }
+  },
+
+  "arrayElem": function(validator, attributeName, model, valueToSet) {
+    if (_.isArray(valueToSet) && !_.all(valueToSet, validator)) {
+      return "validElem";
+    } else return false;
   }
 };
 
@@ -192,13 +210,7 @@ function createValidator(attributeName, type, description) {
 
   if (!validator) { throw "Improper validation type '"+type+"'" ; }
 
-  if (type !== "required") { // doesn't need the description
-    validator = _.bind(validator, null, description, attributeName);
-  } else {
-    validator = _.bind(validator, null, attributeName);
-  }
-
-  return validator;
+  return _.bind(validator, null, description, attributeName);
 }
 
 function createAttributeValidator(attributeName, attributeDescription) {

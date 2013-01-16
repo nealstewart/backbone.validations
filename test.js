@@ -413,6 +413,25 @@ test("valid colors", function() {
   equal(model.set({name: 'yellow'}), false);
 });
 
+module("array elements validation");
+test("works", function() {
+  var ArrayElemTestModel = Backbone.Model.extend({
+    validate : {
+      myArray : {
+        arrayElem : function(elem) {
+          if (elem < 100) return true;
+        }
+      }
+    }
+  });
+
+  var m = new ArrayElemTestModel();
+  ok(m.set({myArray : []}));
+  equal(m.set({myArray : [101, 89]}), false);
+  equal(m.set({myArray : [788]}), false);
+  ok(m.set({myNumber : [1, 67]}));
+});
+
 module("type validations");
 test("email", function() {
   var EmailTestModel = Backbone.Model.extend({
@@ -456,11 +475,60 @@ test("number", function() {
 
   var m = new NumberTestModel();
   ok(m.set({address : "33"}));
+  ok(m.set({address : 33}));
   ok(m.set({address : "33.333"}));
   equal(m.set({address : "33.333f"}), false);
   equal(m.set({address : "f33.333f"}), false);
   equal(m.set({address : "."}), false);
   ok(m.set({address : "089"}));
+});
+
+test("String", function() {
+  var StringTestModel = Backbone.Model.extend({
+    validate : {
+      address : {
+        type : "String"
+      }
+    }
+  });
+
+  var m = new StringTestModel();
+  ok(m.set({address : "bla bla"}));
+  ok(m.set({address : "33.333"}));
+  equal(m.set({address : 33.333}), false);
+  equal(m.set({address : []}), false);
+});
+
+test("Array", function() {
+  var ArrayTestModel = Backbone.Model.extend({
+    validate : {
+      elements : {
+        type : "Array"
+      }
+    }
+  });
+
+  var m = new ArrayTestModel();
+  ok(m.set({elements : []}));
+  ok(m.set({elements : ["bla", "bla"]}));
+  equal(m.set({elements : "bla"}), false);
+  equal(m.set({elements : {}}), false);
+});
+
+test("Boolean", function() {
+  var BooleanTestModel = Backbone.Model.extend({
+    validate : {
+      isNoGood : {
+        type : "Boolean"
+      }
+    }
+  });
+
+  var m = new BooleanTestModel();
+  ok(m.set({isNoGood : false}));
+  ok(m.set({isNoGood : true}));
+  equal(m.set({isNoGood : "bla"}), false);
+  equal(m.set({isNoGood : 1}), false);
 });
 
 test("digits", function() {
