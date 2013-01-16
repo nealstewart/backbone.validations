@@ -37,8 +37,8 @@ var validators = {
     return model[methodName](attributeName, valueToSet);
   },
 
-  "required" : function(attributeName, model, valueToSet) {
-    if (_.isNull(valueToSet) || _.isUndefined(valueToSet) || valueToSet === "") {
+  "required" : function(isRequired, attributeName, model, valueToSet) {
+    if (isRequired && (_.isNull(valueToSet) || _.isUndefined(valueToSet) || valueToSet === "")) {
       return "required";
     } else {
       return false;
@@ -192,13 +192,7 @@ function createValidator(attributeName, type, description) {
 
   if (!validator) { throw "Improper validation type '"+type+"'" ; }
 
-  if (type !== "required") { // doesn't need the description
-    validator = _.bind(validator, null, description, attributeName);
-  } else {
-    validator = _.bind(validator, null, attributeName);
-  }
-
-  return validator;
+  return _.bind(validator, null, description, attributeName);
 }
 
 function createAttributeValidator(attributeName, attributeDescription) {
