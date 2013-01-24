@@ -64,12 +64,12 @@ var ValidatingModel = Backbone.Model.extend({
 });
 ```
 
-### Bind with error events
+### Bind with invalid events
 
 ```javascript
 var vm = new ValidatingModel;
 
-vm.bind('error', function(model, errs) {
+vm.bind('invalid', function(model, errs) {
   // wherein errors looks like this
   // { name: ["required", "pattern", "minlength"] }
 });
@@ -78,7 +78,7 @@ vm.bind('error', function(model, errs) {
 ### Bind to specific attribute's errors
 
 ```javascript
-vm.bind('error:name', function(model, errs) {
+vm.bind('invalid:name', function(model, errs) {
   // wherein errors looks like this:
   // ["required", "pattern", "minlength"]
 });
