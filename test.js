@@ -32,7 +32,7 @@ test("set returns false when failing", function() {
 
   var test = new TestModel;
 
-  equal(test.set({}), false);
+  equal(test.set({}, {validate: true}), false);
 });
 
 test("set triggers an error event on the model", function() {
@@ -47,11 +47,11 @@ test("set triggers an error event on the model", function() {
   var test = new TestModel;
   var errorCallbackCalled = false;
 
-  test.bind('error', function() {
+  test.bind('invalid', function() {
     errorCallbackCalled = true;
   });
 
-  test.set({});
+  test.set({}, {validate: true});
 
   ok(errorCallbackCalled);
 });
@@ -68,11 +68,11 @@ test("set triggers an error event named after the attribute, on the model", func
   var test = new TestModel;
   var errorCallbackCalled = false;
 
-  test.bind('error:' + nameOfAttribute, function() {
+  test.bind('invalid:' + nameOfAttribute, function() {
     errorCallbackCalled = true;
   });
 
-  test.set({});
+  test.set({}, {validate: true});
 
   ok(errorCallbackCalled);
 });
@@ -90,27 +90,17 @@ test("providing a direct override prevents normal and named errors from being tr
   var test = new TestModel;
 
   var nameCallbackCalled = false;
-  test.bind('error:' + nameOfAttribute, function() {
+  test.bind('invalid:' + nameOfAttribute, function() {
     nameCallbackCalled = true;
   });
 
   var normalCallbackCalled = false;
-  test.bind('error', function() {
+  test.bind('invalid', function() {
     normalCallbackCalled = true;
-  });
-
-  var overrideCallbackCalled = false;
-  var overrideCallback = function() {
-    overrideCallbackCalled = true;
-  };
-
-  test.set({}, {
-    error: overrideCallback
   });
 
   equal(false, normalCallbackCalled, "normal callback called");
   equal(false, nameCallbackCalled, "name callback called");
-  ok(overrideCallbackCalled);
 });
 
 module("Backbone.Validations.addValidator");
@@ -140,7 +130,7 @@ test("Custom validators can be provided, and can be added to a model, and will b
 
   testModel = new TestModel;
   valueToBeSet = "blech";
-  testModel.set({name: valueToBeSet});
+  testModel.set({name: valueToBeSet}, {validate: true});
 
   ok(testModelMatched);
   ok(optionsPassedMatched);
@@ -169,13 +159,13 @@ test("Custom validators can be provided, and can be added to a model, and will b
   var errorCallbackCalled = false,
       errorWasIncluded = false;
 
-  testModel.bind('error', function(model, errors) {
+  testModel.bind('invalid', function(model, errors) {
     errorCallbackCalled = true;
     errorWasIncluded = _.include(errors.name, "error dude");
   });
 
   valueToBeSet = "blech";
-  testModel.set({name: valueToBeSet});
+  testModel.set({name: valueToBeSet}, {validate: true}, {validate: true});
 
   ok(errorCallbackCalled);
   ok(errorWasIncluded);
@@ -216,7 +206,7 @@ test("doesn't set other values, when there is no current value, and no value is 
 
   var t = new TestModel;
 
-  equal(t.set({woo: "hoo"}), false);
+  equal(t.set({woo: "hoo"}, {validate: true}), false);
 
   equal(t.get('woo'), undefined);
 });
@@ -233,9 +223,9 @@ test("won't allow a value to be set to null, or blank", function() {
 
   var t = new TestModel;
 
-  equal(t.set({name: null}), false);
-  equal(t.set({name: undefined}), false);
-  equal(t.set({name: ""}), false);
+  equal(t.set({name: null}, {validate: true}), false);
+  equal(t.set({name: undefined}, {validate: true}), false);
+  equal(t.set({name: ""}, {validate: true}), false);
 });
 
 module("custom attribute validator");
@@ -247,14 +237,14 @@ test("it calls the custom validator", function() {
         custom : "nameOfMethod"
       }
     },
-    
+
     nameOfMethod : function(attributeName, attributeValue) {
       customValidatorCalled = true;
     }
   });
-  
+
   var t = new TestModel;
-  t.set({name: "whatever"});
+  t.set({name: "whatever"}, {validate: true});
   ok(customValidatorCalled);
 });
 
@@ -265,14 +255,14 @@ test("can cause an error", function() {
         custom : "nameOfMethod"
       }
     },
-    
+
     nameOfMethod : function() {
       return "error";
     }
   });
-  
+
   var t = new TestModel;
-  equal(t.set({name: "whatever"}), false);
+  equal(t.set({name: "whatever"}, {validate: true}), false);
 });
 
 test("it's included in the errors", function() {
@@ -283,7 +273,7 @@ test("it's included in the errors", function() {
         custom : "nameOfMethod"
       }
     },
-    
+
     nameOfMethod : function() {
       return errorResponse;
     }
@@ -291,11 +281,11 @@ test("it's included in the errors", function() {
 
   var t = new TestModel;
   var errorResponseWasIncluded = false;
-  t.bind('error', function(model, errors) {
+  t.bind('invalid', function(model, errors) {
     errorResponseWasIncluded = _.include(errors.name, errorResponse);
   });
-  
-  t.set({name: "blech"});
+
+  t.set({name: "blech"}, {validate: true});
 
   ok(errorResponseWasIncluded);
 });
@@ -312,8 +302,8 @@ test("given a minimum length, it will error if given a string that is a smaller"
   });
 
   var t = new TestModel;
-  equal(t.set({name : "neal"}), t);
-  equal(t.set({name : "al"}), false);
+  equal(t.set({name : "neal"}, {validate: true}), t);
+  equal(t.set({name : "al"}, {validate: true}), false);
 });
 
 module("maxlength validator");
@@ -327,8 +317,8 @@ test("given a maximum length, it will error if given a string that is a larger",
   });
 
   var t = new TestModel;
-  equal(t.set({name : "neals"}), false);
-  equal(t.set({name : "al"}), t);
+  equal(t.set({name : "neals"}, {validate: true}), false);
+  equal(t.set({name : "al"}, {validate: true}), t);
 });
 
 module("pattern validation");
@@ -340,10 +330,10 @@ test("pattern /^test/", function() {
       }
     }
   });
-  
+
   var newTestModel = new PatternTestModel;
-  ok(newTestModel.set({name:"test"}));
-  equal(newTestModel.set({name:"broken"}), false);
+  ok(newTestModel.set({name:"test"}, {validate: true}));
+  equal(newTestModel.set({name:"broken"}, {validate: true}), false);
 });
 
 module("min validation");
@@ -353,12 +343,12 @@ test("works", function() {
       size : {
         min : 3
       }
-    } 
+    }
   });
-  
+
   var m = new MinTestModel;
-  equal(m.set({size: 2}), false);
-  ok(m.set({size: 5}));
+  equal(m.set({size: 2}, {validate: true}), false);
+  ok(m.set({size: 5}, {validate: true}));
 });
 
 module("in validation");
@@ -370,12 +360,12 @@ test("works", function() {
           1, 2, 3
         ]
       }
-    } 
+    }
   });
-  
+
   var m = new InTestModel;
-  equal(m.set({size: 5}), false);
-  ok(m.set({size: 1}));
+  equal(m.set({size: 5}, {validate: true}), false);
+  ok(m.set({size: 1}, {validate: true}));
 });
 
 module("max validation");
@@ -385,12 +375,12 @@ test("works", function() {
       size : {
         max : 3
       }
-    } 
+    }
   });
-  
+
   var m = new MaxTestModel;
-  equal(m.set({size: 5}), false);
-  ok(m.set({size: 2}));
+  equal(m.set({size: 5}, {validate: true}), false);
+  ok(m.set({size: 2}, {validate: true}));
 });
 
 
@@ -404,13 +394,13 @@ test("valid colors", function() {
           'blue',
           'red'
         ]
-      } 
+      }
     }
   });
 
   var model = new ColorTestingModel;
-  ok(model.set({name: 'white'}));
-  equal(model.set({name: 'yellow'}), false);
+  ok(model.set({name: 'white'}, {validate: true}));
+  equal(model.set({name: 'yellow'}, {validate: true}), false);
 });
 
 module("array elements validation");
@@ -426,10 +416,10 @@ test("works", function() {
   });
 
   var m = new ArrayElemTestModel();
-  ok(m.set({myArray : []}));
-  equal(m.set({myArray : [101, 89]}), false);
-  equal(m.set({myArray : [788]}), false);
-  ok(m.set({myNumber : [1, 67]}));
+  ok(m.set({myArray : []}, {validate: true}));
+  equal(m.set({myArray : [101, 89]}, {validate: true}), false);
+  equal(m.set({myArray : [788]}, {validate: true}), false);
+  ok(m.set({myNumber : [1, 67]}, {validate: true}));
 });
 
 module("type validations");
@@ -443,8 +433,8 @@ test("email", function() {
   });
 
   var m = new EmailTestModel;
-  equal(m.set({email : "boogers"}), false);
-  ok(m.set({email : "neal@snot.ca"}));
+  equal(m.set({email : "boogers"}, {validate: true}), false);
+  ok(m.set({email : "neal@snot.ca"}, {validate: true}));
 });
 
 
@@ -458,9 +448,9 @@ test("url", function() {
   });
 
   var m = new UrlTestModel;
-  equal(m.set({link : "boogers"}), false);
-  ok(m.set({link : "http://snot.ca"}));
-  ok(m.set({link : "ftp://snot.ca"}));
+  equal(m.set({link : "boogers"}, {validate: true}), false);
+  ok(m.set({link : "http://snot.ca"}, {validate: true}));
+  ok(m.set({link : "ftp://snot.ca"}, {validate: true}));
 });
 
 
@@ -474,13 +464,13 @@ test("number", function() {
   });
 
   var m = new NumberTestModel();
-  ok(m.set({address : "33"}));
-  ok(m.set({address : 33}));
-  ok(m.set({address : "33.333"}));
-  equal(m.set({address : "33.333f"}), false);
-  equal(m.set({address : "f33.333f"}), false);
-  equal(m.set({address : "."}), false);
-  ok(m.set({address : "089"}));
+  ok(m.set({address : "33"}, {validate: true}));
+  ok(m.set({address : 33}, {validate: true}));
+  ok(m.set({address : "33.333"}, {validate: true}));
+  equal(m.set({address : "33.333f"}, {validate: true}), false);
+  equal(m.set({address : "f33.333f"}, {validate: true}), false);
+  equal(m.set({address : "."}, {validate: true}), false);
+  ok(m.set({address : "089"}, {validate: true}));
 });
 
 test("String", function() {
@@ -493,10 +483,10 @@ test("String", function() {
   });
 
   var m = new StringTestModel();
-  ok(m.set({address : "bla bla"}));
-  ok(m.set({address : "33.333"}));
-  equal(m.set({address : 33.333}), false);
-  equal(m.set({address : []}), false);
+  ok(m.set({address : "bla bla"}, {validate: true}));
+  ok(m.set({address : "33.333"}, {validate: true}));
+  equal(m.set({address : 33.333}, {validate: true}), false);
+  equal(m.set({address : []}, {validate: true}), false);
 });
 
 test("Array", function() {
@@ -509,10 +499,10 @@ test("Array", function() {
   });
 
   var m = new ArrayTestModel();
-  ok(m.set({elements : []}));
-  ok(m.set({elements : ["bla", "bla"]}));
-  equal(m.set({elements : "bla"}), false);
-  equal(m.set({elements : {}}), false);
+  ok(m.set({elements : []}, {validate: true}));
+  ok(m.set({elements : ["bla", "bla"]}, {validate: true}));
+  equal(m.set({elements : "bla"}, {validate: true}), false);
+  equal(m.set({elements : {}}, {validate: true}), false);
 });
 
 test("Boolean", function() {
@@ -525,10 +515,10 @@ test("Boolean", function() {
   });
 
   var m = new BooleanTestModel();
-  ok(m.set({isNoGood : false}));
-  ok(m.set({isNoGood : true}));
-  equal(m.set({isNoGood : "bla"}), false);
-  equal(m.set({isNoGood : 1}), false);
+  ok(m.set({isNoGood : false}, {validate: true}));
+  ok(m.set({isNoGood : true}, {validate: true}));
+  equal(m.set({isNoGood : "bla"}, {validate: true}), false);
+  equal(m.set({isNoGood : 1}, {validate: true}), false);
 });
 
 test("digits", function() {
@@ -541,13 +531,13 @@ test("digits", function() {
   });
 
   var m = new NumberTestModel();
-  ok(m.set({myNumber : "123"}));
-  equal(m.set({myNumber : "33.333f"}), false);
-  equal(m.set({myNumber : "f33.333f"}), false);
-  equal(m.set({myNumber : "-123"}), false);
-  equal(m.set({myNumber : "."}), false);
-  equal(m.set({myNumber : "abc"}), false);
-  ok(m.set({myNumber : "089"}));
+  ok(m.set({myNumber : "123"}, {validate: true}));
+  equal(m.set({myNumber : "33.333f"}, {validate: true}), false);
+  equal(m.set({myNumber : "f33.333f"}, {validate: true}), false);
+  equal(m.set({myNumber : "-123"}, {validate: true}), false);
+  equal(m.set({myNumber : "."}, {validate: true}), false);
+  equal(m.set({myNumber : "abc"}, {validate: true}), false);
+  ok(m.set({myNumber : "089"}, {validate: true}));
 });
 
 module("test for overlaps");
@@ -564,12 +554,12 @@ test("different models shouldn't affect one another", function() {
   });
 
   var nm = new NameModel();
-  nm.set({name: "Neal"});
-  equal(nm.set({name: ""}), false);
+  nm.set({name: "Neal"}, {validate: true});
+  equal(nm.set({name: ""}, {validate: true}), false);
 
   var um = new UnnameModel();
-  um.set({name: "Neal"});
-  ok(um.set({name: ""}));
+  um.set({name: "Neal"}, {validate: true});
+  ok(um.set({name: ""}, {validate: true}));
 });
 
 module("WHOA A BUNCH AT ONCE");
@@ -592,13 +582,13 @@ test("a whole bunch!", function() {
 
   var vm = new ValidatingModel;
 
-  ok(vm.set({name: "neal", age: 10}));
-  equal(vm.set({name: "neal", age: 201}), false);
-  equal(vm.set({name: "al", age: 10}), false);
-  equal(vm.set({name: "neal", age: -5}), false);
-  ok(vm.set({name: "neal", age: "10"}));
-  equal(vm.set({name: "neal", age: "201"}), false);
-  equal(vm.set({name: "ne", age: 1}), false);
+  ok(vm.set({name: "neal", age: 10}, {validate: true}));
+  equal(vm.set({name: "neal", age: 201}, {validate: true}), false);
+  equal(vm.set({name: "al", age: 10}, {validate: true}), false);
+  equal(vm.set({name: "neal", age: -5}, {validate: true}), false);
+  ok(vm.set({name: "neal", age: "10"}, {validate: true}));
+  equal(vm.set({name: "neal", age: "201"}, {validate: true}), false);
+  equal(vm.set({name: "ne", age: 1}, {validate: true}), false);
 });
 
 module("The shape of validation errors");
@@ -616,14 +606,14 @@ test("The errors object should be an object literal", function() {
 
   var v = new ValidatingModel;
 
-  v.bind('error', function(model, errors) {
+  v.bind('invalid', function(model, errors) {
     deepEqual(errors, {
       name: ["required"],
       whatever: ["min"]
     });
   });
 
-  v.set({whatever: 0})
+  v.set({whatever: 0}, {validate: true})
 });
 
 
@@ -646,13 +636,13 @@ test("proper shaped responses", function() {
 
   var vm = new ValidatingModel;
 
-  vm.bind('error', function(model, error) {
+  vm.bind('invalid', function(model, error) {
     deepEqual({
       age: ["max"]
     }, error);
   });
 
-  equal(vm.set({name: "neal", age: 201}), false);
+  equal(vm.set({name: "neal", age: 201}, {validate: true}), false);
 });
 
 test("minlength", function() {
@@ -674,13 +664,13 @@ test("minlength", function() {
 
   var vm = new ValidatingModel;
 
-  vm.bind('error', function(model, error) {
+  vm.bind('invalid', function(model, error) {
     deepEqual({
       name: ["minlength"]
     }, error);
   });
-  
-  equal(vm.set({name: "al", age: 10}), false);
+
+  equal(vm.set({name: "al", age: 10}, {validate: true}), false);
 });
 
 test("pattern", function() {
@@ -702,13 +692,13 @@ test("pattern", function() {
 
   var vm = new ValidatingModel;
 
-  vm.bind('error', function(model, error) {
+  vm.bind('invalid', function(model, error) {
     deepEqual({
       name: ["pattern"]
     }, error);
   });
- 
-  equal(vm.set({name: "a323", age: 10}), false);
+
+  equal(vm.set({name: "a323", age: 10}, {validate: true}), false);
 });
 
 test("save options success", function() {
@@ -725,10 +715,12 @@ test("save options success", function() {
 
   var vm = new ValidatingModel;
 
-  vm.bind('error', function() {
-    ok(false);
+  vm.bind('invalid', function(model, error) {
+    deepEqual({
+      name: ["required"]
+    }, error);
   });
- 
+
   vm.save({
     number: 10
   }, {
@@ -736,9 +728,7 @@ test("save options success", function() {
       ok(false);
     },
     error: function(model, error) {
-      deepEqual({
-        name: ["required"]
-      }, error);
+      ok(false);
     }
   });
 });
