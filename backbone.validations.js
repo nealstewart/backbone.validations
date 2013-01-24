@@ -260,22 +260,16 @@ function createValidators(modelValidations) {
   return attributeValidators;
 }
 
-var oldPerformValidation = Backbone.Model.prototype._performValidation;
+var oldValidate = Backbone.Model.prototype._validate;
 function newPerformValidation(attrs, options) {
-  if (options.silent || !this.validate) return true;
-  var errors = this.validate(attrs);
-  if (errors) {
-    if (options.error) {
-      options.error(this, errors, options);
-    } else {
-      this.trigger('error', this, errors, options);
-      _.each(errors, function(error, name) {
-        this.trigger('error:' + name, this, errors, options);
-      }, this);
-    }
-    return false;
+  var result = oldValidate.apply(this, arguments);
+
+  if(!result){
+    _.each(this.validationError, function(error, name) {
+      this.trigger('invalid:' + name, this, this.validationError, options);
+    }, this);
   }
-  return true;
+  return result;
 }
 
 // save the old backbone
