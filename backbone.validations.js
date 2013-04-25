@@ -28,8 +28,9 @@ var validators = {
     return model[methodName](attributeName, valueToSet);
   },
 
-  "required" : function(attributeName, model, valueToSet) {
-    if (_.isNull(valueToSet) || _.isUndefined(valueToSet) || valueToSet === "") {
+  "required" : function(isRequired, attributeName, model, valueToSet) {
+    if( isRequired === false ) return false;
+    if ( _.isNull(valueToSet) || _.isUndefined(valueToSet) || valueToSet === "") {
       return "required";
     } else {
       return false;
@@ -183,11 +184,7 @@ function createValidator(attributeName, type, description) {
 
   if (!validator) { throw "Improper validation type '"+type+"'" ; }
 
-  if (type !== "required") { // doesn't need the description
-    validator = _.bind(validator, null, description, attributeName);
-  } else {
-    validator = _.bind(validator, null, attributeName);
-  }
+  validator = _.bind(validator, null, description, attributeName);
 
   return validator;
 }
@@ -197,9 +194,28 @@ function createAttributeValidator(attributeName, attributeDescription) {
       type,
       desc;
 
+  // Check if the 'required' validator is explicitly set to false in order to
+  // skip other validations if the new valueToSet is undefined or null.
+  var optional = attributeDescription.required === false;
+
   for (type in attributeDescription) {
     desc = attributeDescription[type];
-    validatorsForAttribute.push(createValidator(attributeName, type, desc));
+    validatorsForAttribute.push( function(){
+      if( type === 'required' || !optional ){
+        return createValidator(attributeName, type, desc);
+      } else {
+        return (function(){
+          var validator = createValidator(attributeName, type, desc)
+          return function(model, valueToSet){
+            if( _.isUndefined(valueToSet) || _.isNull(valueToSet) ){
+              return false;
+            } else {
+              return validator(model, valueToSet);
+            }
+          };
+        })();
+      }
+    }());
   }
 
   return function(model, valueToSet, hasOverridenError, options) {
@@ -230,6 +246,8 @@ function createAttributeValidator(attributeName, attributeDescription) {
 function createValidators(modelValidations) {
   var attributeValidations,
       attributeValidators = {};
+
+  var optional = modelValidations['required'] === 'false';
 
   for (var attrName in modelValidations) {
     attributeValidations = modelValidations[attrName];
