@@ -238,6 +238,40 @@ test("won't allow a value to be set to null, or blank", function() {
   equal(t.set({name: ""}), false);
 });
 
+test("when explicity set to false other validators are skipped", function() {
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      size : {
+        type: 'number',
+        min: 0,
+        max: 5,
+        required : false,
+      }
+    }
+  });
+
+  var t = new TestModel;
+  equal(t.set({size: 'a'}), false);
+  equal(t.set({size: 6}), false);
+  equal(t.set({other: null}), t);
+  equal(t.set({size: 2}), t);
+});
+
+test("when not explicity set to false other validators are not skipped", function() {
+  var TestModel = Backbone.Model.extend({
+    validate : {
+      size : {
+        type: 'number',
+        min: 0,
+        max: 10
+      }
+    }
+  });
+
+  var t = new TestModel;
+  equal(t.set({other: null}), false);
+});
+
 module("custom attribute validator");
 test("it calls the custom validator", function() {
   var customValidatorCalled = false;
