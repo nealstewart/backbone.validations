@@ -29,7 +29,7 @@ var validators = {
   },
 
   "required" : function(isRequired, attributeName, model, valueToSet) {
-    if( isRequired === false ) return false;
+    if (isRequired === false) return false;
     if ( _.isNull(valueToSet) || _.isUndefined(valueToSet) || valueToSet === "") {
       return "required";
     } else {
@@ -60,7 +60,7 @@ var validators = {
   "number" : function(type, attributeName, model, valueToSet) {
     return isNaN(valueToSet) ? 'number' : undefined;
   },
-  
+
   "digits": function (type, attributeName, model, valueToSet) {
     var isBeingSet = !_.isUndefined(valueToSet);
     return (!/^\d+$/.test(valueToSet) && isBeingSet) ? 'digits' : undefined;
@@ -200,14 +200,15 @@ function createAttributeValidator(attributeName, attributeDescription) {
 
   for (type in attributeDescription) {
     desc = attributeDescription[type];
-    validatorsForAttribute.push( function(){
-      if( type === 'required' || !optional ){
+
+    var validator = (function(){
+      if (type === 'required' || !optional) {
         return createValidator(attributeName, type, desc);
       } else {
         return (function(){
-          var validator = createValidator(attributeName, type, desc)
+          var validator = createValidator(attributeName, type, desc);
           return function(model, valueToSet){
-            if( _.isUndefined(valueToSet) || _.isNull(valueToSet) ){
+            if ( _.isUndefined(valueToSet) || _.isNull(valueToSet)) {
               return false;
             } else {
               return validator(model, valueToSet);
@@ -216,6 +217,8 @@ function createAttributeValidator(attributeName, attributeDescription) {
         })();
       }
     }());
+
+    validatorsForAttribute.push( validator );
   }
 
   return function(model, valueToSet, hasOverridenError, options) {
