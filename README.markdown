@@ -14,6 +14,12 @@ var ValidatingModel = Backbone.Model.extend({
       minlength : 3,
       maxlength : 100
     },
+    nickname : {
+      required  : false,
+      pattern   : /^[a-zA-Z]+$/,
+      minlength : 3,
+      maxlength : 100
+    },
     age : {
       type: "number",
       min: 0,
