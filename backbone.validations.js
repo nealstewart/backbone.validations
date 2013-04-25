@@ -247,8 +247,6 @@ function createValidators(modelValidations) {
   var attributeValidations,
       attributeValidators = {};
 
-  var optional = modelValidations['required'] === 'false';
-
   for (var attrName in modelValidations) {
     attributeValidations = modelValidations[attrName];
     attributeValidators[attrName] = createAttributeValidator(attrName, attributeValidations);
