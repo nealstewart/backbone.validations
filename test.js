@@ -211,6 +211,25 @@ test("doesn't set other values, when there is no current value, and no value is 
   equal(t.get('woo'), undefined);
 });
 
+module("validate as a function");
+
+test("defining validate as a function which returns an object works", function() {
+  var TestModel = Backbone.Model.extend({
+    validate : function () {
+      return {
+        name : {
+          required : true
+        }
+      };
+    }
+  });
+
+  var t = new TestModel;
+
+  equal(t.set({woo: "hoo"}, {validate: true}), false);
+  equal(t.get('woo'), undefined);
+});
+
 
 test("won't allow a value to be set to null, or blank", function() {
   var TestModel = Backbone.Model.extend({
