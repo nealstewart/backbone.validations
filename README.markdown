@@ -37,6 +37,18 @@ var ValidatingModel = Backbone.Model.extend({
 });
 ```
 
+Alternatively, you may also define a function which returns an object literal of the same type:
+
+```javascript
+var ValidatingModel = Backbone.Model.extend({
+  validate : function () {
+    return {
+      // validate object
+    };
+  }
+});
+```
+
 ## Built-In Validations
 - in
   - Takes an array of values, compares with ==

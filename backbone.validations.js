@@ -279,9 +279,10 @@ var oldModel = Backbone.Model;
 Backbone.Validations.Model = Backbone.Model.extend({
   constructor : function() {
     // if they pass an object, construct the new validations
-    if (typeof this.validate === "object" && this.validate !== null) {
+    var validate = _.result(this, 'validate');
+    if (typeof validate === "object" && validate !== null) {
       if (!this.constructor.prototype._attributeValidators) {
-        this.constructor.prototype._attributeValidators = createValidators(this.validate);
+        this.constructor.prototype._attributeValidators = createValidators(validate);
         this.constructor.prototype.validate = newValidate;
         this.constructor.prototype._validate = newPerformValidation;
       }
